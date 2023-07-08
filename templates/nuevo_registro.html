@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <title>Bienvenido</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/nuevo_registro/css/style.css">
+  </head>
+  <body>
+    <section id="campo-dinamico">
+      <h2 class="titulo">Registro</h2>
+        <form id="formulario">
+                <div class="container">
+            <div class="column">
+                <div class="campo_input">
+                    <label for="tipo-perfil" class="input-label">Tipo de perfil</label>
+                    <select id="tipo-perfil" class="input-field">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Personal administrativo">Personal administrativo</option>
+                        <option value="Docente">Docente</option>
+                    </select>
+                </div>
+                <div class="campo_input">
+                    <label for="tipo-documento" class="input-label">Tipo de documento</label>
+                    <select id="tipo-documento" class="input-field">
+                        <option value="dni">DNI</option>
+                        <option value="otros">Otros</option>
+                    </select>
+                </div>
+                <div class="campo_input">
+                    <label for="numero-documento" class="input-label">Número de documento</label>
+                    <input type="text" id="numero-documento" class="input-field">
+                </div>
+                <div class="campo_input">
+                    <label for="nombre" class="input-label">Nombre</label>
+                    <input type="text" id="nombre" class="input-field">
+                </div>
+                <div class="campo_input">
+                    <label for="apellido-paterno" class="input-label">Apellido paterno</label>
+                    <input type="text" id="apellido-paterno" class="input-field">
+                </div>
+                <div class="campo_input">
+                    <label for="apellido-materno" class="input-label">Apellido materno</label>
+                    <input type="text" id="apellido-materno" class="input-field">
+                </div>
+            </div>
+            <div class="column">
+                <div class="campo_input">
+                    <label for="correo-electronico" class="input-label">Correo electrónico</label>
+                    <input type="text" id="correo-electronico" class="input-field">
+                </div>
+                <div class="campo_input">
+                    <label for="celular" class="input-label">Celular</label>
+                    <input type="text" id="celular" class="input-field">
+                </div>
+                <div class="campo_input">
+                    <label for="sexo" class="input-label">Sexo</label>
+                    <select id="sexo" class="input-field">
+                        <option value="masculino">Masculino</option>
+                        <option value="femenino">Femenino</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="campo_input">
+                    <label for="fecha-nacimiento" class="input-label">Fecha de nacimiento</label>
+                    <input type="date" id="fecha-nacimiento" class="input-field">
+                </div>
+                <div class="campo_input">
+                    <label for="clave-asignada" class="input-label">Clave asignada</label>
+                    <input type="text" id="clave-asignada" class="input-field">
+                </div>
+                <div class="button-section">
+                    <button id="registrar-btn" class="btn">Registrar</button>
+                </div>
+            </div>
+          </div>
+        </form>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="static/nuevo_registro/js/cargar.js"></script>
+  </body>
+</html>

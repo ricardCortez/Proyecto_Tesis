@@ -1,0 +1,49 @@
+Metadata-Version: 2.1
+Name: opencv-face-recognition
+Version: 1.0.2
+Summary: Python SDK for interacting with OpenCV Face Recognition API
+Author-email: Seventh Sense Artificial Intelligence Private Limited <support@seventhsense.ai>
+License: The MIT License (MIT)
+        Copyright © 2022 Seventh Sense Artificial Intelligence Private Limited
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Project-URL: Homepage, https://docs.opencv.fr/python
+Keywords: Opencv Face Recognition,Opencv FR,Face Verification,Face Recognition
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: opencv-python
+Requires-Dist: pillow
+Requires-Dist: python-dateutil
+Requires-Dist: requests
+Provides-Extra: dev
+Requires-Dist: mkdocs ; extra == 'dev'
+
+# OpenCV Face Recognition Python SDK
+
+This SDK is a pure Python package that helps you interact with OpenCV Face Recognition API.
+
+The OpenCV Face Recognition API is a JSON REST based API that lets you:
+1. Register persons using their face images
+2. Search for registered persons
+3. Group persons into `Collections`
+4. Perform `liveness` checks to see if a photo is spoofed.
+
+# How to use
+
+Install the package via:
+```
+pip install opencv-face-recognition
+```
+
+# Documentation
+
+Our documentation can be found [here](https://docs.opencv.fr/python/)

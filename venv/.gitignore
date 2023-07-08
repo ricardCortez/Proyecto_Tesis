@@ -1,0 +1,4 @@
+# created by virtualenv automatically
+*.txt
+/static/faces/
+*.xml
