@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, date
 import random
 import os
@@ -6,11 +7,11 @@ import imutils
 import cv2
 import pandas as pd
 from sqlalchemy import or_
-from flask import Blueprint, render_template, flash, request, jsonify, session, redirect, url_for
+from flask import Blueprint, render_template, flash, request, jsonify, session, redirect
 from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula, AsistenciaLaboratorio, Secciones, \
     profesor_seccion, estudiante_seccion
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
-    extract_attendance_from_db, get_code_from_db, hash_password, show_alert, get_name_from_db, check_password, \
+    extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name
 from app import datetoday2
 logging.basicConfig(level=logging.INFO)
@@ -129,6 +130,7 @@ def start_aula():
         faces = faceClassif.detectMultiScale(gray, 1.3, 5)
 
         for (x, y, w, h) in faces:
+            #start_time = time.time()
             rostro = auxFrame[y:y + h, x:x + w]
             rostro = cv2.resize(rostro, (150, 150), interpolation=cv2.INTER_CUBIC)
             result = face_recognizer.predict(rostro)
@@ -138,10 +140,13 @@ def start_aula():
             if result[1] < 70:
                 identified_person = imagePaths[result[0]]  # Nombre del usuario identificado
                 recognized_users.add(identified_person)
-                confidence = round((1 - (result[1] / 100)) * 100 * 2, 2)  # Calcular la confianza como porcentaje
+                confidence = round((1 - (result[1] / 100)) * 100 * 2, 1)  # Calcular la confianza como porcentaje
                 label_text = '{}'.format(identified_person, confidence)
                 cv2.putText(frame, label_text, (x, y - 25), 2, 1.1, (0, 255, 0), 1, cv2.LINE_AA)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                #end_time = time.time()
+                #duration = end_time - start_time
+                #print(f'Tiempo transcurrido para detectar un rostro: {duration} segundos')
 
                 # Agregar asistencia del alumno a la tabla "asistencia"
                 codigo_alumno = get_code_from_db(identified_person)
@@ -152,12 +157,14 @@ def start_aula():
                     existing_attendance_aula = db.session.query(AsistenciaAula).join(Usuario).filter(
                         Usuario.codigo_alumno == codigo_alumno, AsistenciaAula.fecha == today).first()
                     if existing_attendance_aula:
-                        logging.info(f"El alumno {identified_person} ya tiene un registro de asistencia para hoy en asistencia aula.")
+                        #logging.info(f"El alumno {identified_person} ya tiene un registro de asistencia para hoy en asistencia aula.")
+                        pass
                     else:
                         # Agregar el registro de asistencia en asistencia aula solo si no existe uno para la fecha actual
                         add_attendance_aula(codigo_alumno, section_id)
                 else:
-                    logging.error(f"No se encontró el código de alumno para el nombre: {identified_person}")
+                    #logging.error(f"No se encontró el código de alumno para el nombre: {identified_person}")
+                    pass
             else:
                 cv2.putText(frame, 'Desconocido', (x, y - 20), 2, 0.8, (0, 0, 255), 1, cv2.LINE_AA)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
@@ -180,7 +187,7 @@ def start_aula():
         cv2.putText(frame, 'Captura de video finalizada', (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     codigo_alumno, hora, *_ = extract_attendance_from_db()
-    logging.info("Datos de asistencia obtenidos de la base de datos (asistencia aula):")
+    #logging.info("Datos de asistencia obtenidos de la base de datos (asistencia aula):")
     for c, h in zip(codigo_alumno, hora):
         logging.info(f"Código: {c}, Hora: {h}")
 
@@ -189,7 +196,6 @@ def start_aula():
         return render_template('attendance_aula.html', codigo_alumno=codigo_alumno, hora=hora, datetoday2=datetoday2, url=request.url )
 
     return render_template('panel_docente.html')
-    #return render_template('attendance_aula.html', codigo_alumno=codigo_alumno, hora=hora, datetoday2=datetoday2)
 
 @routes_blueprint.route('/asignarcubiculo', methods=['GET'])
 def asignar_cubiculo():
@@ -731,6 +737,21 @@ def get_students_sections():
 
     return jsonify(estudiantes_data)
 
+@routes_blueprint.route('/reporte docente')
+def reporte_docente():
+    return render_template('reporte_docente.html')
+@routes_blueprint.route('/get_teachers_sections', methods=['GET'])
+def get_teachers_sections():
+    docentes = NuevoRegistro.query.filter(NuevoRegistro.tipo_perfil == 'Docente').all()
+    data = []
+    for docente in docentes:
+        secciones = [seccion.nombre_seccion for seccion in docente.secciones]
+        data.append({
+            'numero_documento': docente.numero_documento,
+            'nombre': docente.nombre,
+            'secciones': secciones
+        })
+    return jsonify(data)
 
 @routes_blueprint.route('/get_students_by_section', methods=['GET'])
 def get_students_by_section():

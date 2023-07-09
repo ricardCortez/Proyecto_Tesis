@@ -25,7 +25,6 @@
     {% if usuario %}
     {% if usuario and primer_archivo %}
     <img id="myImage" src="{{ url_for('static', filename='faces/' + usuario.codigo_alumno + '/' + primer_archivo) }}" alt="Imagen de rostro del usuario">
-    <!-- <div id="-->"
     {% endif %}
 
     <h1>Detalles del Alumno</h1>
@@ -37,7 +36,7 @@
     {% if ultima_asistencia %}
     <h2>Última asistencia a la aula:</h2>
     <p>Fecha de registro: {{ ultima_asistencia.fecha }}</p>
-    <p>Hora de registro: {{ ultima_asistencia.hora }}</p>
+    <p>Hora de registro: {{ ultima_asistencia.hora.strftime('%H:%M:%S') }}</p>
     {% else %}
     <p>Este alumno no tiene registros de asistencia a la aula.</p>
     {% endif %}
