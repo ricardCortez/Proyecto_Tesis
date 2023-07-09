@@ -14,7 +14,7 @@ from functions import add_attendance_aula, add_attendance_laboratorio, train_mod
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name
 from app import datetoday2
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
 routes_blueprint = Blueprint('routes', __name__)
 # Agrega esta línea al principio del archivo para inicializar la lista de cubículos disponibles
@@ -28,7 +28,7 @@ def main():
     return render_template('main.html')
 
 @routes_blueprint.route('/logadm')
-def login_1():
+def login():
     return render_template('login.html')
 # ------------------------- rutas del administrador --------------------
 @routes_blueprint.route('/administrador')
@@ -38,7 +38,7 @@ def panel_admin():
 
 @routes_blueprint.route('/new')
 @admin_required
-def people():
+def new():
     return render_template('nuevo_registro.html')
 
 @routes_blueprint.route('/up')
@@ -47,7 +47,7 @@ def upload_form():
     return render_template('upload.html')
 
 @routes_blueprint.route('/reg')
-def home():
+def registro_alumno():
     return render_template('registro-alumno.html')
 @routes_blueprint.route('/ver_reporte')
 def ver_reporte():
@@ -62,7 +62,6 @@ def panel_administrativo():
 @routes_blueprint.route('/per')
 def panel_personal():
     return render_template('asignar_secciones_alumnos.html')  #### alumnos
-
 @routes_blueprint.route('/doc')
 def documentos():
     return render_template('asignar_secciones.html') ### docentes
@@ -76,7 +75,10 @@ def reporte_asistencia():
 #@personal_required
 def reporte():
     return render_template('reporte.html') #### estudiantes y secciones
-
+@routes_blueprint.route('/reporte docente')
+def reporte_docente():
+    return render_template('reporte_docente.html')
+# ------------------------- fin de las rutas del personal administrativo --------------------
 # ------------------------- rutas del docente --------------------
 @routes_blueprint.route('/docente')
 @docente_required
@@ -95,6 +97,7 @@ def busqueda_alumnos():
 def ver_asistencia():
     return render_template('ver_asistencia.html')
 # ------------------------- fin de rutas del docente --------------------
+
 #------------------------ INICIO DE FUNCIONES --------------------------------
 @routes_blueprint.route('/start/aula', methods=['GET', 'POST'])
 def start_aula():
@@ -304,7 +307,6 @@ def start_laboratorio():
                                    numero_cubiculo=numero_cubiculo, hora=hora, datetoday2=datetoday2, url=request.url)
         return render_template('panel_docente.html')
         #return redirect(url_for('routes.panel_docente'))
-
 
 @routes_blueprint.route('/add', methods=['GET', 'POST'])
 def add():
@@ -701,7 +703,6 @@ def search_student_aula():
                            ruta_imagen=ruta_imagen, primer_archivo=primer_archivo.name if primer_archivo else None,
                            ultima_asistencia=ultima_asistencia)
 
-
 @routes_blueprint.route('/search_student_laboratorio', methods=['POST'])
 def search_student_laboratorio():
     codigo_alumno = request.form['codigo_alumno']
@@ -737,9 +738,6 @@ def get_students_sections():
 
     return jsonify(estudiantes_data)
 
-@routes_blueprint.route('/reporte docente')
-def reporte_docente():
-    return render_template('reporte_docente.html')
 @routes_blueprint.route('/get_teachers_sections', methods=['GET'])
 def get_teachers_sections():
     docentes = NuevoRegistro.query.filter(NuevoRegistro.tipo_perfil == 'Docente').all()
