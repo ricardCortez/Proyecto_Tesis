@@ -22,16 +22,17 @@ $('form').submit(function(e) {
         return;
     }
 
-    // Validar que el código de alumno tenga 9 dígitos
-    if (!/^\d{9}$/.test(codigo_alumno)) {
+    // Validar que el código de alumno comienza con una letra seguida de 9 dígitos
+    if (!/^[a-zA-Z]\d{9}$/.test(codigo_alumno)) {
         e.preventDefault();  // Prevenir la sumisión del formulario
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'El código de alumno debe tener exactamente 9 dígitos',
-        });
-        return;
-    }
+            text: 'El código de alumno debe comenzar con una letra seguida de exactamente 9 dígitos',
+    });
+    return;
+}
+
 
     $.ajax({
         url: '/add',  // Cambia esto a la ruta correcta de tu servidor.

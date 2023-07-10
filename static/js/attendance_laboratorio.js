@@ -157,6 +157,15 @@ function actualizarCubiculo(button) {
     return;
   }
 
+  // Validar que el número de cubículo esté dentro del rango permitido
+  if (nuevoCubiculo < 1 || nuevoCubiculo > 60) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Oops...',
+      text: 'Por favor, ingresa un número de cubículo entre 1 y 60'
+    });
+    return;
+  }
   // Validar que el número de cubículo no esté en uso
   if (numerosCubiculo.includes(nuevoCubiculo)) {
     Swal.fire({

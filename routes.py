@@ -14,7 +14,7 @@ from functions import add_attendance_aula, add_attendance_laboratorio, train_mod
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name
 from app import datetoday2
-#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 routes_blueprint = Blueprint('routes', __name__)
 # Agrega esta línea al principio del archivo para inicializar la lista de cubículos disponibles
@@ -28,7 +28,7 @@ def main():
     return render_template('main.html')
 
 @routes_blueprint.route('/logadm')
-def login():
+def login_1():
     return render_template('login.html')
 # ------------------------- rutas del administrador --------------------
 @routes_blueprint.route('/administrador')
@@ -38,7 +38,7 @@ def panel_admin():
 
 @routes_blueprint.route('/new')
 @admin_required
-def new():
+def people():
     return render_template('nuevo_registro.html')
 
 @routes_blueprint.route('/up')
@@ -47,7 +47,7 @@ def upload_form():
     return render_template('upload.html')
 
 @routes_blueprint.route('/reg')
-def registro_alumno():
+def home():
     return render_template('registro-alumno.html')
 @routes_blueprint.route('/ver_reporte')
 def ver_reporte():
@@ -375,7 +375,8 @@ def add():
         # Guarda la ubicación de la carpeta creada en la base de datos
         user = Usuario.query.filter_by(nombre=nombre).first()
         if user is None:
-            return jsonify(error=f"No se encontró el usuario con nombre {nombre}"), 404
+            #return jsonify(error=f"No se encontró el usuario con nombre {nombre}"), 404
+            pass
         user.ubicacion_carpeta = ruta_rostro
         db.session.commit()
 

@@ -93,6 +93,22 @@ def get_section_name(section_id):
     return None
 
 
+def student_belongs_to_section(student_code, section_id):
+    # Obtén el estudiante usando el código del estudiante
+    student = db.session.query(Usuario).filter(Usuario.codigo_alumno == student_code).first()
+
+    # Verifica si el estudiante es None (no existe en la base de datos)
+    if student is None:
+        return False
+
+    # Verifica si el estudiante está en la sección
+    for section in student.secciones:
+        if section.id == section_id:
+            return True
+
+    # Si no encontramos la sección en la lista de secciones del estudiante, retorna False
+    return False
+
 def add_attendance_aula(codigo_alumno, section_id):
     fecha = date.today()
     hora = datetime.now().time()
