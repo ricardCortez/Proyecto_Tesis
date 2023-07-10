@@ -12,7 +12,7 @@ from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula
     profesor_seccion, estudiante_seccion
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
-    admin_required, personal_required, docente_required, get_section_name
+    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section
 from app import datetoday2
 logging.basicConfig(level=logging.INFO)
 
@@ -155,6 +155,15 @@ def start_aula():
                 codigo_alumno = get_code_from_db(identified_person)
                 nombre = get_name_from_db(identified_person)
                 if codigo_alumno:
+                    print(f"codigo_alumno: {codigo_alumno}")  # Debug print
+                    print(f"section_id: {section_id}")  # Debug print
+                    student_belongs = student_belongs_to_section(codigo_alumno, section_id)
+                    print(f"student_belongs: {student_belongs}")  # Debug print
+                    if not student_belongs:
+                        label_text = 'No pertenece a la seccion'
+                        cv2.putText(frame, label_text, (x, y - 50), 2, 1.1, (0, 0, 255), 1, cv2.LINE_AA)
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                        continue  # Saltar el resto del bucle, ya que el estudiante no pertenece a la sección
                     # Verificar si el alumno ya tiene un registro de asistencia para la fecha actual en asistencia aula
                     today = date.today()
                     existing_attendance_aula = db.session.query(AsistenciaAula).join(Usuario).filter(
@@ -264,6 +273,15 @@ def start_laboratorio():
                     codigo_alumno = get_code_from_db(identified_person)
                     nombre = get_name_from_db(identified_person)
                     if codigo_alumno:
+                        #print(f"codigo_alumno: {codigo_alumno}")  # Debug print
+                        #print(f"section_id: {section_id}")  # Debug print
+                        student_belongs = student_belongs_to_section(codigo_alumno, section_id)
+                        print(f"student_belongs: {student_belongs}")  # Debug print
+                        if not student_belongs:
+                            label_text = 'No pertenece a la seccion'
+                            cv2.putText(frame, label_text, (x, y - 50), 2, 1.1, (0, 0, 255), 1, cv2.LINE_AA)
+                            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                            continue  # Saltar el resto del bucle, ya que el estudiante no pertenece a la sección
                         # Verificar si el alumno ya tiene un registro de asistencia para la fecha actual en asistencia laboratorio
                         today = date.today()
                         existing_attendance_lab = db.session.query(AsistenciaLaboratorio).join(Usuario).filter(
@@ -541,6 +559,17 @@ def obtener_secciones():
     print("Secciones obtenidas:", secciones_list)
 
     return jsonify(secciones_list)
+
+@routes_blueprint.route('/obtener_secciones_alumnos', methods=['GET'])
+def obtener_secciones_alumnos():
+    # Consultar todas las secciones en la base de datos
+    secciones = db.session.query(Secciones).all()
+
+    # Convertir las secciones a un formato serializable
+    secciones_dict = [seccion.to_dict() for seccion in secciones]
+
+    # Devolver las secciones como respuesta JSON
+    return jsonify(secciones_dict), 200
 
 @routes_blueprint.route('/asignar_docente', methods=['POST'])
 def asignar_docente():

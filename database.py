@@ -113,7 +113,6 @@ class AsistenciaLaboratorio(db.Model):
         self.hora = hora
         self.seccion_id = seccion_id  # Nueva asignación
 
-
 class Secciones(db.Model):
     __tablename__ = 'secciones'
 

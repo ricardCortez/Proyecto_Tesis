@@ -23,26 +23,19 @@ function limpiarAsignacionesEstudiantes() {
         }
     });
 }
-
 function cargarDatosEstudiantes() {
     $('#tabla-asignacion-estudiante tbody').empty();
     $.get("/obtener_usuarios", function(usuarios) {
-        $.get("/obtener_secciones_noasignadas", function(secciones) {
+        $.get("/obtener_secciones_alumnos", function(secciones) {
             $.get("/obtener_estudiantes_asignados", function(usuarios_asignados) {
                 usuarios.forEach(function(usuario) {
-                    var fila = '<tr><td>' + usuario.nombre + '</td><td><select id="seccion-usuario-' + usuario.id + '"';
-                    if (usuarios_asignados.includes(usuario.id)) {
-                        fila += ' disabled';
-                    }
+                    var fila = '<tr><td>' + usuario.nombre + '</td><td><ul id="seccion-usuario-' + usuario.id + '"';
                     fila += '>';
                     secciones.forEach(function(seccion) {
-                        fila += '<option value="' + seccion.id + '">' + seccion.nombre_seccion + '</option>';
+                        fila += '<li><input type="checkbox" id="seccion-' + seccion.id + '-' + usuario.id + '" value="' + seccion.id + '">';
+                        fila += '<label for="seccion-' + seccion.id + '-' + usuario.id + '">' + seccion.nombre_seccion + '</label></li>';
                     });
-                    fila += '</select></td><td><button onclick="asignarUsuario(' + usuario.id + ')"';
-                    if (usuarios_asignados.includes(usuario.id)) {
-                        fila += ' disabled';
-                    }
-                    fila += '>Asignar</button></td></tr>';
+                    fila += '</ul></td><td><button onclick="asignarUsuario(' + usuario.id + ')">Asignar</button></td></tr>';
                     $('#tabla-asignacion-estudiante tbody').append(fila);
                 });
             });
@@ -51,20 +44,31 @@ function cargarDatosEstudiantes() {
 }
 
 function asignarUsuario(usuarioId) {
-    var seccionId = $("#seccion-usuario-" + usuarioId).val();
-    $.ajax({
-        url: '/asignar_estudiante',
-        type: 'POST',
-        data: {
-            'estudiante_id': usuarioId,
-            'seccion_id': seccionId
-        },
-        success: function(response) {
-            alert(response.message);
-            cargarDatosEstudiantes();
-        },
-        error: function(error) {
-            console.log(error);
-        }
+    var seccionIds = []; // Array para almacenar los ID de las secciones seleccionadas
+    $("#seccion-usuario-" + usuarioId + " input:checked").each(function() {
+        seccionIds.push($(this).val()); // Agregar el ID de la sección seleccionada al array
     });
+
+    seccionIds.forEach(function(seccionId) { // Recorrer el array y asignar cada sección individualmente
+        $.ajax({
+            url: '/asignar_estudiante',
+            type: 'POST',
+            data: {
+                'estudiante_id': usuarioId,
+                'seccion_id': seccionId
+            },
+            success: function(response) {
+                alert(response.message);
+                cargarDatosEstudiantes();
+                ocultarSeccionAsignada(usuarioId, seccionId); // Ocultar la sección asignada
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    });
+}
+
+function ocultarSeccionAsignada(usuarioId, seccionId) {
+    $("#seccion-" + seccionId + "-" + usuarioId).parent().hide();
 }
