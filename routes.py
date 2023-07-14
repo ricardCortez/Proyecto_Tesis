@@ -343,6 +343,7 @@ def add():
         cap = cv2.VideoCapture(0)
         faceClassif = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         count = 0
+        cancelled = False  # Variable para comprobar si el usuario canceló el proceso
 
         while True:
             ret, frame = cap.read()
@@ -367,11 +368,16 @@ def add():
             cv2.imshow('Capturando Rostros', frame)
 
             k = cv2.waitKey(1)
-            if k == 27 or count >= 300:
+            if k == ord('q') or count >= 300:
+                cancelled = True  # Usuario presionó 'q' para cancelar el proceso
                 break
 
         cap.release()
         cv2.destroyAllWindows()
+
+        # Si el usuario canceló el proceso, se retorna al inicio
+        if cancelled:
+            return render_template('add.html')
 
         # Busca el usuario en la base de datos utilizando el código de alumno
         print(f"Código de alumno: {codigo_alumno}")

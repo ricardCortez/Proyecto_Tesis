@@ -41,6 +41,10 @@ $('form').submit(function(e) {
             nombre: nombre,
             codigo_alumno: codigo_alumno
         },
+        beforeSend: function() {
+            // Mostrar el spinner de carga antes de enviar la solicitud
+            $("#loadingSpinner").show();
+        },
         success: function(response) {
             // Aquí manejamos la respuesta en caso de éxito.
             // Actualizar la interfaz de usuario según sea necesario.
@@ -58,6 +62,10 @@ $('form').submit(function(e) {
                 title: 'Error',
                 text: error.responseJSON.error,
             });
+        },
+        complete: function() {
+            // Ocultar el spinner de carga después de completar la solicitud
+            $("#loadingSpinner").hide();
         }
     });
 
