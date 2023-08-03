@@ -1,0 +1,13 @@
+
+Flask
+Flask-SQLAlchemy
+werkzeug
+pygame
+psycopg2
+numpy
+imutils
+datetime
+Flask-Bcrypt
+Flask-Migrate
+opencv-python==4.7.0.72
+opencv-contrib-python==4.7.0.72
