@@ -13,8 +13,6 @@ migrate = Migrate(app, db)
 #### Guarda la fecha de hoy en 2 formatos diferentes
 datetoday = date.today().strftime("%m_%d_%y")
 datetoday2 = date.today().strftime("%d-%B-%Y")
-# Define la ruta del archivo de asistencia
-attendance_file_path = f'Attendance/Attendance-{datetoday}.csv'
 
 if __name__ == '__main__':
     with app.app_context():
