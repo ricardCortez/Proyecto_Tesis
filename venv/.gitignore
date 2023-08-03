@@ -1,4 +1,4 @@
 # created by virtualenv automatically
-*.txt
+#*.txt
 /static/faces/*
 static/modelo_LBPHFace.xml
