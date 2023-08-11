@@ -14,6 +14,7 @@ from functions import add_attendance_aula, add_attendance_laboratorio, train_mod
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section
 from app import datetoday2
+from werkzeug.security import generate_password_hash
 logging.basicConfig(level=logging.INFO)
 
 routes_blueprint = Blueprint('routes', __name__)
@@ -538,6 +539,47 @@ def set_rol():
     rol_seleccionado = request.form['rol']
     session['rol_seleccionado'] = rol_seleccionado
     return jsonify({'message': 'Rol seleccionado establecido'}), 200
+
+
+@routes_blueprint.route('/datos_usuario', methods=['GET'])
+def datos_usuario():
+    # Asumiendo que guardaste el ID del usuario en la sesión como 'usuario_id'
+    usuario_id = session.get('usuario_id')
+
+    # Obtener el usuario usando el ID
+    usuario = NuevoRegistro.query.get(usuario_id)
+
+    if not usuario:
+        return "Usuario no encontrado", 404
+
+    return render_template('updated_usuario.html', usuario=usuario)
+
+
+@routes_blueprint.route('/actualizar_usuario', methods=['POST'])
+def actualizar_usuario():
+    data = request.json
+    usuario_id = session.get('usuario_id')
+    usuario = NuevoRegistro.query.get(usuario_id)
+
+    if not usuario:
+        return jsonify(success=False, message="Usuario no encontrado"), 404
+
+    field_to_update = data['field']
+    new_value = data['value']
+
+    # If the field to update is the password, hash it before saving
+    if field_to_update == "clave_asignada":
+        new_value = generate_password_hash(new_value)
+
+    setattr(usuario, field_to_update, new_value)
+
+    try:
+        db.session.commit()
+        return jsonify(success=True, message="Actualizado con éxito")
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
+
 
 @routes_blueprint.route('/obtener_docentes', methods=['GET'])
 def obtener_docentes():
