@@ -1,5 +1,4 @@
 import logging
-import time
 from datetime import datetime, date
 import random
 import os
@@ -38,7 +37,7 @@ def panel_admin():
     return render_template('panel_administrador.html')
 
 @routes_blueprint.route('/new')
-@admin_required
+#@admin_required
 def people():
     return render_template('nuevo_registro.html')
 
@@ -543,16 +542,38 @@ def set_rol():
 
 @routes_blueprint.route('/datos_usuario', methods=['GET'])
 def datos_usuario():
-    # Asumiendo que guardaste el ID del usuario en la sesión como 'usuario_id'
-    usuario_id = session.get('usuario_id')
+    # Asumiendo que guardaste el rol en la sesión como 'rol_seleccionado'
+    rol_seleccionado = session.get('rol')
 
-    # Obtener el usuario usando el ID
-    usuario = NuevoRegistro.query.get(usuario_id)
+    # Imprime el rol para depuración
+    print("Rol en la sesión:", rol_seleccionado)
 
-    if not usuario:
-        return "Usuario no encontrado", 404
+    if not rol_seleccionado:
+        return f"No se encontró el rol en la sesión.", 400
 
-    return render_template('updated_usuario.html', usuario=usuario)
+    if rol_seleccionado == "Administrador":
+        # Para el perfil de administrador, simplemente renderizar el template que permite buscar por DNI
+        return render_template('updated_usuario.html', usuario=None)
+    else:
+        # Para otros perfiles, tomar el ID del usuario desde la sesión
+        usuario_id = session.get('usuario_id')
+        usuario = NuevoRegistro.query.get(usuario_id)
+
+        if not usuario:
+            return "Usuario no encontrado", 404
+
+        # Mapear roles a plantillas
+        templates_map = {
+            'Personal administrativo': 'view_usuario.html',
+            'Docente': 'view_usuario.html'
+        }
+
+        template_name = templates_map.get(rol_seleccionado)
+
+        if not template_name:
+            return f"Rol '{rol_seleccionado}' no reconocido.", 400
+
+        return render_template(template_name, usuario=usuario)
 
 
 @routes_blueprint.route('/actualizar_usuario', methods=['POST'])
@@ -579,6 +600,25 @@ def actualizar_usuario():
     except Exception as e:
         db.session.rollback()
         return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
+
+
+@routes_blueprint.route('/update_usuario', methods=['POST'])
+def update_usuario():
+    data = request.form
+    usuario = NuevoRegistro.query.filter_by(numero_documento=data.get('dni')).first()
+
+    if usuario:
+        usuario.nombre = data.get('nombre')
+        usuario.apellido_paterno = data.get('apellido_paterno')
+        usuario.apellido_materno = data.get('apellido_materno')
+        usuario.correo_electronico = data.get('correo_electronico')
+        usuario.celular = data.get('celular')
+        usuario.fecha_naimiento = data.get('fecha_naimiento')
+
+        db.session.commit()  # Asegúrate de que estás usando SQLAlchemy y que db.session está disponible
+        return jsonify({'message': 'Datos actualizados correctamente'}), 200
+    else:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
 
 
 @routes_blueprint.route('/obtener_docentes', methods=['GET'])
@@ -799,6 +839,30 @@ def search_student_laboratorio():
                                asistencia=asistencia, registro_rostro=registro_rostro, ubicacion="laboratorio")
 
     return render_template('resultados_busqueda.html', no_results=True)
+
+
+@routes_blueprint.route('/buscar_usuario_por_dni', methods=['POST'])
+def buscar_usuario_por_dni():
+    dni = request.form.get('dni')
+
+    # Lógica para buscar al usuario en la base de datos usando el DNI
+    usuario = NuevoRegistro.query.filter_by(numero_documento=dni).first()
+
+    if usuario:
+        return jsonify({
+            'tipo_perfil': usuario.tipo_perfil,
+            'numero_documento': usuario.numero_documento,
+            'nombre': usuario.nombre,
+            'apellido_paterno': usuario.apellido_paterno,
+            'apellido_materno': usuario.apellido_materno,
+            'correo_electronico': usuario.correo_electronico,
+            'celular': usuario.celular,
+            'fecha_nacimiento': usuario.fecha_nacimiento,
+            'clave_asignada': usuario.clave_asignada,
+        }), 200
+    else:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+
 
 @routes_blueprint.route('/get_students_sections', methods=['GET'])
 def get_students_sections():

@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Datos del Usuario</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style_user.css">
+
+</head>
+<body>
+    <h1>Datos del Usuario</h1>
+    <form>
+        <div class="field">
+            <label for="tipo_perfil">Tipo Perfil:</label>
+            <span id="tipo_perfil_text">{{ usuario.tipo_perfil }}</span>
+            <input type="text" id="tipo_perfil_input" name="tipo_perfil" value="{{ usuario.tipo_perfil }}" style="display: none;">
+            <img src="/static/main/images/img.png" alt="User Image" class="user-image">
+            <label for="numero_documento">Numero documento:</label>
+            <span id="numero_documento_text">{{ usuario.numero_documento }}</span>
+            <input type="text" id="numero_documento_input" name="numero_documento" value="{{ usuario.numero_documento }}" style="display: none;">
+            <label for="nombre">Nombre:</label>
+            <span id="nombre_text">{{ usuario.nombre }}</span>
+            <input type="text" id="nombre_input" name="nombre" value="{{ usuario.nombre }}" style="display: none;">
+            <label for="apellido_paterno">Apellido Paterno:</label>
+            <span id="apellido_paterno_text">{{ usuario.apellido_paterno }}</span>
+            <input type="text" id="apellido_paterno_input" name="apellido_paterno" value="{{ usuario.apellido_paterno }}" style="display: none;">
+            <label for="apellido_materno">Apellido Materno:</label>
+            <span id="apellido_materno_text">{{ usuario.apellido_materno }}</span>
+            <input type="text" id="apellido_materno_input" name="apellido_materno" value="{{ usuario.apellido_materno }}" style="display: none;">
+
+            <label for="fecha_nacimiento">Fecha Nacimiento:</label>
+            <span id="fecha_nacimiento_text">{{ usuario.fecha_nacimiento }}</span>
+            <input type="date" id="fecha_nacimiento_input" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento }}" style="display: none;">
+
+            <label for="correo_electronico">Correo:</label>
+            <span id="correo_electronico_text">{{ usuario.correo_electronico }}</span>
+            <input type="text" id="correo_electronico_input" name="correo_electronico" value="{{ usuario.correo_electronico }}" style="display: none;">
+
+            <label for="celular">Celular:</label>
+            <span id="celular_text">{{ usuario.celular }}</span>
+            <input type="text" id="celular_input" name="celular" value="{{ usuario.celular }}" style="display: none;">
+
+            <label for="sexo">Genero:</label>
+            <span id="genero_text">{{ usuario.sexo }}</span>
+            <input type="text" id="genero_input" name="sexo" value="{{ usuario.sexo }}" style="display: none;">
+            <label for="clave_asignada">Contraseña:</label>
+            <span id="clave_asignada_text">******</span>
+            <input type="text" id="clave_asignada_input" name="clave_asignada" value="******" style="display: none;">
+            <button id="changePassword" class="btn">Cambiar</button>
+
+        </div>
+        <div class="modal" id="passwordModal">
+            <div class="modal-content">
+                <button id="closeModal" style="position: absolute; right: 10px; top: 10px;">X</button>
+                <h2>Cambiar contraseña</h2>
+                <label for="newPassword">Ingresar contraseña nueva:</label>
+                <input type="password" id="newPassword" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W]).{6,}">
+                <label for="repeatPassword">Repita la nueva contraseña:</label>
+                <input type="password" id="repeatPassword">
+                <button id="savePassword">Cambiar</button>
+            </div>
+        </div>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/view_user.js"></script>
+</body>
+</html>
+
+
