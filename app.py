@@ -7,6 +7,9 @@ from database import db
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # Asegúrate de que esta sea una cadena larga y aleatoria para seguridad.
 app.config.from_object(Config)
+app.config.from_pyfile('config.cfg')
+app.config.from_pyfile('twilio_config.cfg')
+
 db.init_app(app)
 migrate = Migrate(app, db)
 

@@ -1,0 +1,67 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+    <title>Recuperar Contraseña</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/recuperar/css/style.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center mb-5">
+                <h2 class="heading-section">Crear Contraseña</h2>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-12 col-lg-10">
+                <div class="wrap d-md-flex">
+                    <div class="img" style="background-image: url(/static/recuperar/images/img-singin.jpg);"></div>
+                    <div class="login-wrap p-4 p-md-5">
+                        <div class="d-flex">
+                            <div class="w-100">
+                                <h3 class="mb-4">Recuperar Contraseña</h3>
+                            </div>
+                        </div>
+                        <form action="/actualizar_contraseña" method="post">
+
+                            <div class="form-group mb-3">
+                                <label class="label">Correo</label>
+                                <input type="email" id="correo" name="correo" class="form-control" placeholder="Ingresa correo" required>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div><button type="button" id="validar-captcha-btn" class="btn btn-secondary mt-3">Validar Captcha</button>
+                            </div>
+
+                            <div id="new-password-fields" style="display:none;">
+                                <div class="form-group mb-3">
+                                    <label class="label">Nueva Contraseña</label>
+                                    <label for="nueva_contraseña"></label><input type="password" id="nueva_contraseña" class="form-control" placeholder="Ingresa nueva contraseña" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="label">Repetir Contraseña</label>
+                                    <label for="confirmación"></label><input type="password" id="confirmación" class="form-control" placeholder="Repite la nueva contraseña" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" id="enviar_btn" class="form-control btn btn-primary rounded submit px-3">Enviar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/static/recuperar/js/validar.js"></script>
+</body>
+</html>

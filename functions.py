@@ -1,18 +1,21 @@
+import random
 import cv2
 import os
 import logging
-from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, profesor_seccion
+
+from twilio.rest import Client
+
+from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, profesor_seccion, \
+    NuevoRegistro
 from flask_bcrypt import Bcrypt
 import pygame
 from datetime import datetime, date
 import numpy as np
 from app import app
 from functools import wraps
-from flask import redirect, url_for, session, request, jsonify
+from flask import redirect, url_for, session, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import delete
-from sqlalchemy.orm import joinedload
-
+import requests
 
 # Extraer la cara de una imagen
 def extract_faces(img,
@@ -237,4 +240,11 @@ def show_alert(frame):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-
+def verify_recaptcha(response):
+    payload = {
+        'secret': current_app.config['RECAPTCHA_SECRET_KEY'],
+        'response': response
+    }
+    r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
+    result = r.json()
+    return result.get('success')

@@ -5,16 +5,20 @@ import os
 import imutils
 import cv2
 import pandas as pd
+import requests
 from sqlalchemy import or_
-from flask import Blueprint, render_template, flash, request, jsonify, session, redirect
+from flask import Blueprint, render_template, flash, request, jsonify, session, redirect, url_for
 from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula, AsistenciaLaboratorio, Secciones, \
     profesor_seccion, estudiante_seccion
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
-    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section
+    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section, \
+    send_recovery_pin, get_phone_number, verify_recaptcha
 from app import datetoday2
+from flask import current_app
 from werkzeug.security import generate_password_hash
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 routes_blueprint = Blueprint('routes', __name__)
 # Agrega esta línea al principio del archivo para inicializar la lista de cubículos disponibles
@@ -52,6 +56,10 @@ def home():
 @routes_blueprint.route('/ver_reporte')
 def ver_reporte():
     return render_template('ver_asistencia_general.html')
+
+@routes_blueprint.route('/validar')
+def validar():
+    return render_template('usuario.html')
 # ------------------------- fin de las rutas del administrador --------------------
 
 # ------------------------- rutas del personal administrativo --------------------
@@ -602,6 +610,41 @@ def actualizar_usuario():
         return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
 
 
+@routes_blueprint.route('/actualizar_contraseña', methods=['POST'])
+def actualizar_contraseña():
+    # Obtener la nueva contraseña y el correo del formulario
+    nueva_contraseña = request.form.get('nueva_contraseña')
+    repetir_contraseña = request.form.get('repetir_contraseña')
+    correo = request.form.get('correo')  # Obtener el correo del formulario
+    logging.debug(f"Datos del formulario: {request.form}")
+
+    # Verificar que las contraseñas coincidan
+    if nueva_contraseña != repetir_contraseña:
+        return jsonify(success=False, message="Las contraseñas no coinciden"), 400
+
+    # Buscar el usuario en la base de datos usando el correo
+    usuario = NuevoRegistro.query.filter_by(correo_electronico=correo).first()
+
+    # Agregar el registro
+    if usuario:
+        logging.debug(f"Usuario obtenido: {usuario.correo_electronico}")
+    else:
+        logging.debug("No se encontró ningún usuario con ese correo electrónico.")
+
+    if not usuario:
+        return jsonify(success=False, message="Usuario no encontrado"), 404
+
+    # Actualizar la contraseña del usuario y guardar en la base de datos
+    hashed_password = generate_password_hash(nueva_contraseña)
+    usuario.clave_asignada = hashed_password
+
+    try:
+        db.session.commit()
+        return jsonify(success=True, message="Contraseña actualizada con éxito")
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
+
 @routes_blueprint.route('/update_usuario', methods=['POST'])
 def update_usuario():
     data = request.form
@@ -863,7 +906,6 @@ def buscar_usuario_por_dni():
     else:
         return jsonify({'error': 'Usuario no encontrado'}), 404
 
-
 @routes_blueprint.route('/get_students_sections', methods=['GET'])
 def get_students_sections():
     estudiantes = Usuario.query.all()
@@ -995,3 +1037,7 @@ def obtener_asistencia_labo():
     asistencia = AsistenciaLaboratorio.query.filter_by(fecha=today, seccion_id=seccion_id).all()
     print(asistencia)  # Esto imprimirá los registros de asistencia en tu consola
     return jsonify([asist.to_dict() for asist in asistencia])
+
+@routes_blueprint.route('/recover_password', methods=['GET'])
+def recover_password_form():
+    return render_template('recuperar.html')
