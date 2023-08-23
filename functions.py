@@ -2,9 +2,6 @@ import random
 import cv2
 import os
 import logging
-
-from twilio.rest import Client
-
 from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, profesor_seccion, \
     NuevoRegistro
 from flask_bcrypt import Bcrypt
@@ -16,6 +13,10 @@ from functools import wraps
 from flask import redirect, url_for, session, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+from email.message import EmailMessage
+import smtplib
+# Importa las configuraciones desde config.py
+from correo_config import SERVIDOR_SMTP, PUERTO, CORREO_REMITENTE, CONTRASENA_REMITENTE
 
 # Extraer la cara de una imagen
 def extract_faces(img,
@@ -245,9 +246,20 @@ def verify_recaptcha(response):
     result = r.json()
     return result.get('success')
 
+def enviar_correo(destinatario, asunto, contenido):
+    msg = EmailMessage()
+    msg.set_content(contenido)
+    msg['Subject'] = asunto
+    msg['From'] = "Recuperar cuenta <" + CORREO_REMITENTE + ">"
+    msg['To'] = destinatario
+
+    with smtplib.SMTP_SSL(SERVIDOR_SMTP, PUERTO) as server:
+        server.login(CORREO_REMITENTE, CONTRASENA_REMITENTE)
+        server.send_message(msg)
 def correo_existe(correo):
     try:
-        user = Usuario.query.filter_by(Usuario.email == correo).one_or_none()
+        # Consulta el modelo NuevoRegistro en lugar de Usuario
+        user = NuevoRegistro.query.filter_by(correo_electronico=correo).one_or_none()
         if user:
             return True
         return False

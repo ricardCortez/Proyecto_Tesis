@@ -12,28 +12,11 @@ from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula
     profesor_seccion, estudiante_seccion
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
-    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section
+    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section, correo_existe, \
+    enviar_correo
 from app import datetoday2
 from flask import current_app
 from werkzeug.security import generate_password_hash
-def enviar_correo(destinatario, asunto, contenido):
-    import smtplib
-    from email.message import EmailMessage
-
-    servidor_smtp = 'smtp.gmail.com'
-    puerto = 465
-    correo_remitente = 'cortez.ricardo19@gmail.com'
-    contrasena_remitente = 'odznvlcbnebzdsdi'  # Aquí va tu contraseña de aplicación
-
-    msg = EmailMessage()
-    msg.set_content(contenido)
-    msg['Subject'] = asunto
-    msg['From'] = correo_remitente
-    msg['To'] = destinatario
-
-    with smtplib.SMTP_SSL(servidor_smtp, puerto) as server:
-        server.login(correo_remitente, contrasena_remitente)
-        server.send_message(msg)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
