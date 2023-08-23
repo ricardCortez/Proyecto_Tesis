@@ -12,11 +12,29 @@ from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula
     profesor_seccion, estudiante_seccion
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
-    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section, \
-    send_recovery_pin, get_phone_number, verify_recaptcha
+    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section
 from app import datetoday2
 from flask import current_app
 from werkzeug.security import generate_password_hash
+def enviar_correo(destinatario, asunto, contenido):
+    import smtplib
+    from email.message import EmailMessage
+
+    servidor_smtp = 'smtp.gmail.com'
+    puerto = 465
+    correo_remitente = 'cortez.ricardo19@gmail.com'
+    contrasena_remitente = 'odznvlcbnebzdsdi'  # Aquí va tu contraseña de aplicación
+
+    msg = EmailMessage()
+    msg.set_content(contenido)
+    msg['Subject'] = asunto
+    msg['From'] = correo_remitente
+    msg['To'] = destinatario
+
+    with smtplib.SMTP_SSL(servidor_smtp, puerto) as server:
+        server.login(correo_remitente, contrasena_remitente)
+        server.send_message(msg)
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -609,6 +627,28 @@ def actualizar_usuario():
         db.session.rollback()
         return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
 
+@routes_blueprint.route('/recover_password', methods=['GET'])
+def recover_password_form():
+    return render_template('recuperar.html')
+
+@routes_blueprint.route('/generar_pin', methods=['POST'])
+def generar_pin():
+    data = request.json
+    correo = data.get('correo')
+    if not correo:
+        return jsonify(success=False, message="Correo no proporcionado"), 400
+
+    # Generar PIN
+    pin = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    session['pin'] = pin
+    # para luego compararlo cuando el usuario intente actualizar su contraseña.
+
+    # Enviar PIN por correo
+    try:
+        enviar_correo(correo, "Tu PIN de validación", f"Tu PIN de validación es: {pin}")
+        return jsonify(success=True, message="PIN enviado con éxito")
+    except Exception as e:
+        return jsonify(success=False, message=f"Error al enviar el PIN: {str(e)}")
 
 @routes_blueprint.route('/actualizar_contraseña', methods=['POST'])
 def actualizar_contraseña():
@@ -662,7 +702,6 @@ def update_usuario():
         return jsonify({'message': 'Datos actualizados correctamente'}), 200
     else:
         return jsonify({'error': 'Usuario no encontrado'}), 404
-
 
 @routes_blueprint.route('/obtener_docentes', methods=['GET'])
 def obtener_docentes():
@@ -1037,7 +1076,29 @@ def obtener_asistencia_labo():
     asistencia = AsistenciaLaboratorio.query.filter_by(fecha=today, seccion_id=seccion_id).all()
     print(asistencia)  # Esto imprimirá los registros de asistencia en tu consola
     return jsonify([asist.to_dict() for asist in asistencia])
+@routes_blueprint.route('/validar_pin', methods=['POST'])
+def validar_pin():
+    data = request.json
+    pin_ingresado = data.get('pin')
+    if not pin_ingresado:
+        return jsonify(success=False, message="PIN no proporcionado"), 400
 
-@routes_blueprint.route('/recover_password', methods=['GET'])
-def recover_password_form():
-    return render_template('recuperar.html')
+    # Comparar el PIN ingresado con el PIN en la sesión
+    if 'pin' in session and session['pin'] == pin_ingresado:
+        # Si es correcto, eliminar el PIN de la sesión
+        session.pop('pin')
+        return jsonify(success=True, message="PIN correcto")
+    else:
+        return jsonify(success=False, message="PIN incorrecto"), 401
+
+
+@routes_blueprint.route('/verificar_correo', methods=['POST'])
+def verificar_correo():
+    data = request.json
+    correo = data.get('correo')
+
+    # Suponiendo que tienes una función que verifica si un correo existe en la base de datos
+    if correo_existe(correo):
+        return jsonify(success=True, message="Correo existe")
+    else:
+        return jsonify(success=False, message="Correo no registrado"), 404

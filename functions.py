@@ -196,7 +196,6 @@ def docente_required(f):
 
 bcrypt = Bcrypt(app)
 
-
 def authenticate_user(usuario, contrasena):
     user = Usuario.query.filter_by(usuario=usuario).first()
 
@@ -205,14 +204,11 @@ def authenticate_user(usuario, contrasena):
     else:
         return None
 
-
 def hash_password(password):
     return generate_password_hash(password)
 
-
 def check_password(hashed_password, password):
     return check_password_hash(hashed_password, password)
-
 
 # Función para mostrar la imagen de alerta y reproducir el sonido
 def show_alert(frame):
@@ -248,3 +244,13 @@ def verify_recaptcha(response):
     r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
     result = r.json()
     return result.get('success')
+
+def correo_existe(correo):
+    try:
+        user = Usuario.query.filter_by(Usuario.email == correo).one_or_none()
+        if user:
+            return True
+        return False
+    except Exception as e:
+        print(f"Error al verificar correo: {e}")
+        return False

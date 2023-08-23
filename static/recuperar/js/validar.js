@@ -2,38 +2,73 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('correo');
     const validarCaptchaBtn = document.getElementById('validar-captcha-btn');
     const newPasswordFields = document.getElementById('new-password-fields');
-    const enviarBtn = document.getElementById('enviar_btn');  // Referencia al botón "Enviar"
 
     // Ocultar el botón "Enviar" inicialmente
-    enviarBtn.style.display = 'none';
+    $('#enviar_btn').hide();
 
-    // Al hacer clic en el botón de validar
     validarCaptchaBtn.addEventListener('click', function(event) {
-        // Si el captcha es correcto
         let recaptchaValue = grecaptcha.getResponse();
-        if(recaptchaValue.length == 0) {
-            alert("Por favor, completa el reCAPTCHA.");
+        if (recaptchaValue.length == 0) {
+            Swal.fire('Atención', 'Por favor, completa el reCAPTCHA.', 'warning');
             return;
         }
 
-        // Hace que el campo de correo electrónico sea de solo lectura
         emailInput.setAttribute('readonly', true);
-        // Mostrar los campos para la nueva contraseña
-        newPasswordFields.style.display = 'block';
-        // Mostrar el botón "Enviar"
-        enviarBtn.style.display = 'block';  // Muestra el botón "Enviar"
+        // Mostrar mensaje de éxito del captcha
+        Swal.fire('¡Éxito!', 'Captcha validado correctamente.', 'success');
+
+        fetch('/generar_pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                correo: emailInput.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('pin-field').style.display = 'block';
+                document.getElementById('validate-pin-btn').style.display = 'block';
+
+                const solicitarNuevoPinBtn = document.createElement('button');
+                solicitarNuevoPinBtn.textContent = 'Solicitar nuevo PIN';
+                solicitarNuevoPinBtn.addEventListener('click', function() {
+                    fetch('/generar_pin', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            correo: emailInput.value
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('¡Éxito!', 'Se ha enviado un nuevo PIN a tu correo.', 'success');
+                        } else {
+                            Swal.fire('Error', 'Hubo un error al enviar el nuevo PIN. Por favor, intenta de nuevo.', 'error');
+                        }
+                    });
+                });
+
+                document.getElementById('pin-field').appendChild(solicitarNuevoPinBtn);
+            } else {
+                Swal.fire('Error', 'Hubo un error al enviar el PIN. Por favor, intenta de nuevo.', 'error');
+            }
+        });
     });
 
-    // Al intentar actualizar la contraseña
     document.querySelector('form').addEventListener('submit', function(event) {
         event.preventDefault();
 
-        // Obtener la nueva contraseña y la confirmación
         let nuevaContraseña = document.getElementById('nueva_contraseña').value;
         let confirmación = document.getElementById('confirmación').value;
 
         if (nuevaContraseña !== confirmación) {
-            alert("Las contraseñas no coinciden.");
+            Swal.fire('Atención', 'Las contraseñas no coinciden.', 'warning');
             return;
         }
 
@@ -53,15 +88,39 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                window.location.href = "/logadm";
+                Swal.fire('¡Éxito!', data.message, 'success').then(() => {
+                    window.location.href = "/logadm";
+                });
             } else {
-                alert(data.message);
+                Swal.fire('Error', data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Ha ocurrido un error al intentar actualizar la contraseña.");
+            Swal.fire('Error', 'Ha ocurrido un error al intentar actualizar la contraseña.', 'error');
         });
+    });
+});
+
+$('#validate-pin-btn').click(function () {
+    const pinValue = $('#pin').val();
+    $.ajax({
+        url: '/validar_pin',
+        method: 'POST',
+        data: JSON.stringify({ pin: pinValue }),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                $('#pin').attr('readOnly', true);
+                Swal.fire('¡Éxito!', 'PIN validado correctamente.', 'success');
+                $('#new-password-fields').show();
+                $('#enviar_btn').show();
+            } else {
+                Swal.fire('Atención', 'PIN incorrecto. Inténtalo de nuevo.', 'warning');
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Hubo un error al validar el PIN. Inténtalo de nuevo.', 'error');
+        }
     });
 });
