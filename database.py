@@ -182,3 +182,4 @@ class NuevoRegistro(db.Model):
         self.sexo = sexo
         self.fecha_nacimiento = fecha_nacimiento
         self.clave_asignada = clave_asignada
+

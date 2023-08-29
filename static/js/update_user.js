@@ -50,8 +50,8 @@ $(document).ready(function() {
 
         } else {
             // Si no se está editando, pasamos a modo edición
-            $("[id$='_text']").hide();
-            $("[id$='_input']").show();
+            $("[id$='_text']").not(".no-toggle").hide();
+            $("[id$='_input']").not(".no-toggle").show();
             $("#edit_update_button").text("Actualizar");
             $("#cancel_button").show();
         }
