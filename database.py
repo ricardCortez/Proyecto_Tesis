@@ -183,3 +183,15 @@ class NuevoRegistro(db.Model):
         self.fecha_nacimiento = fecha_nacimiento
         self.clave_asignada = clave_asignada
 
+
+class RostrosNoReconocidos(db.Model):
+    __tablename__ = 'rostros_no_reconocidos'
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, default=datetime.date.today())
+    hora = db.Column(db.Time, default=datetime.datetime.now().time())
+    tipo = db.Column(db.String(100))  # 'No Reconocido' o 'No Pertenece'
+    datos = db.Column(db.String(500), nullable=True)  # "persona sin registro" para 'No Reconocido'
+
+    def __init__(self, tipo, datos=None):
+        self.tipo = tipo
+        self.datos = datos
