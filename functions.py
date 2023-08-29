@@ -1,16 +1,14 @@
-import random
 import cv2
 import os
 import logging
-from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, profesor_seccion, \
-    NuevoRegistro
+from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, NuevoRegistro
 from flask_bcrypt import Bcrypt
 import pygame
 from datetime import datetime, date
 import numpy as np
 from app import app
 from functools import wraps
-from flask import redirect, url_for, session, request, jsonify, current_app
+from flask import redirect, url_for, session, request, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from email.message import EmailMessage
@@ -210,12 +208,10 @@ def hash_password(password):
 
 def check_password(hashed_password, password):
     return check_password_hash(hashed_password, password)
-
 # Función para mostrar la imagen de alerta y reproducir el sonido
 def show_alert(frame):
     image_path = 'static/image/alert.png'
     sound_path = 'static/sound/alert.mp3'
-
     # Reproducir el sonido
     pygame.mixer.init()
     pygame.mixer.music.load(sound_path)
@@ -258,7 +254,7 @@ def enviar_correo(destinatario, asunto, contenido):
         server.send_message(msg)
 def correo_existe(correo):
     try:
-        # Consulta el modelo NuevoRegistro en lugar de Usuario
+        # Consulta el modelo NuevoRegistro
         user = NuevoRegistro.query.filter_by(correo_electronico=correo).one_or_none()
         if user:
             return True

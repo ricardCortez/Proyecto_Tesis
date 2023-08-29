@@ -1,7 +1,9 @@
 .row.text-center {
   text-align: left;
 }
-
+body {
+    font-family: 'Roboto', sans-serif;
+}
 h2 {
   font-size: 24px;
   font-weight: bold;

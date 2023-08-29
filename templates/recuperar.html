@@ -5,7 +5,7 @@
     <title>Recuperar Contraseña</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="static/recuperar/css/style.css">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
@@ -15,7 +15,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 text-center mb-5">
-                <h2 class="heading-section">Crear Contraseña</h2>
+                <h2 class="heading-section">Reestablecer Contraseña</h2>
             </div>
         </div>
         <div class="row justify-content-center">
@@ -28,6 +28,7 @@
                                 <h3 class="mb-4">Recuperar Contraseña</h3>
                             </div>
                         </div>
+                        <input type="hidden" id="tipo_perfil" value="{{ tipo_perfil }}">
                         <form action="/actualizar_contraseña" method="post">
 
                             <div class="form-group mb-3" id="pin-field" style="display:none;">
@@ -39,14 +40,18 @@
                                 <div class="form-group mb-3">
                                     <label class="label">Correo</label>
                                     <input type="email" id="correo" name="correo" class="form-control" placeholder="Ingresa correo" required>
+                                     <button type="button" id="validar-correo-btn" style="display:none; margin-top: 10px;" class="btn btn-secondary">Validar correo</button>
+
                                 </div>
 
-
+                            <div id="captcha-div">
                                 <div class="form-group mb-3">
                                     <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+                                </div>
+                                <div class="form-group mb-3">
                                     <button type="button" id="validar-captcha-btn" class="btn btn-secondary mt-3">Validar Captcha</button>
                                 </div>
-
+                            </div>
                                 <div id="new-password-fields" style="display:none;">
 
                                     <div class="form-group mb-3">

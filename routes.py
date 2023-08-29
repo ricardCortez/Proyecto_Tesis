@@ -5,9 +5,8 @@ import os
 import imutils
 import cv2
 import pandas as pd
-import requests
 from sqlalchemy import or_
-from flask import Blueprint, render_template, flash, request, jsonify, session, redirect, url_for
+from flask import Blueprint, render_template, flash, request, jsonify, session, redirect
 from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula, AsistenciaLaboratorio, Secciones, \
     profesor_seccion, estudiante_seccion
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
@@ -15,7 +14,6 @@ from functions import add_attendance_aula, add_attendance_laboratorio, train_mod
     admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section, correo_existe, \
     enviar_correo
 from app import datetoday2
-from flask import current_app
 from werkzeug.security import generate_password_hash
 
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +40,7 @@ def panel_admin():
     return render_template('panel_administrador.html')
 
 @routes_blueprint.route('/new')
-#@admin_required
+@admin_required
 def people():
     return render_template('nuevo_registro.html')
 
@@ -333,7 +331,6 @@ def start_laboratorio():
             return render_template('attendance_laboratorio.html', codigo_alumno=codigo_alumno,
                                    numero_cubiculo=numero_cubiculo, hora=hora, datetoday2=datetoday2, url=request.url)
         return render_template('panel_docente.html')
-        #return redirect(url_for('routes.panel_docente'))
 
 @routes_blueprint.route('/add', methods=['GET', 'POST'])
 def add():
@@ -583,7 +580,6 @@ def datos_usuario():
             return f"Rol '{rol_seleccionado}' no reconocido.", 400
 
         return render_template(template_name, usuario=usuario)
-
 
 @routes_blueprint.route('/actualizar_usuario', methods=['POST'])
 def actualizar_usuario():

@@ -1,6 +1,7 @@
 $(document).ready(function() {
   // Recuperar el rol desde localStorage
   var rol = localStorage.getItem('rol') || 'Invitado';
+  console.log("Tipo de Perfil:", rol);
 
   // Verificar si se recuperó un rol
   if (rol) {
