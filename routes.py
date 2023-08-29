@@ -8,11 +8,11 @@ import pandas as pd
 from sqlalchemy import or_
 from flask import Blueprint, render_template, flash, request, jsonify, session, redirect
 from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula, AsistenciaLaboratorio, Secciones, \
-    profesor_seccion, estudiante_seccion
+    profesor_seccion, estudiante_seccion, RostrosNoReconocidos
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section, correo_existe, \
-    enviar_correo
+    enviar_correo, belongs_to_section
 from app import datetoday2
 from werkzeug.security import generate_password_hash
 
@@ -111,21 +111,19 @@ def start_aula():
     cap = cv2.VideoCapture(0)
     ret = True
     recognized_users = set()
-    frame = None  # Variable frame inicializada fuera del bucle
+    frame = None
+    detection_counters = {}
 
-    # Crear el reconocedor de rostros LBPH
     face_recognizer = cv2.face.LBPHFaceRecognizer_create()
     face_recognizer.read('static/modelo_LBPHFace.xml')
 
-    # Cargar el clasificador de detección de rostros
     faceClassif = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-    dataPath = 'static/faces'  # Cambia a la ruta donde hayas almacenado Data
+    dataPath = 'static/faces'
     imagePaths = os.listdir(dataPath)
-    print('imagePaths=', imagePaths)
 
     section_id = request.form['section_name']
-    section_name = get_section_name(section_id)    # Obtener el ID de la sección a partir de su nombre
+    section_name = get_section_name(section_id)
 
     while ret:
         ret, frame = cap.read()
@@ -140,64 +138,67 @@ def start_aula():
         faces = faceClassif.detectMultiScale(gray, 1.3, 5)
 
         for (x, y, w, h) in faces:
-            #start_time = time.time()
             rostro = auxFrame[y:y + h, x:x + w]
             rostro = cv2.resize(rostro, (150, 150), interpolation=cv2.INTER_CUBIC)
             result = face_recognizer.predict(rostro)
 
-            confidence = 0  # Valor predeterminado de confianza
+            confidence = 0
 
             if result[1] < 70:
-                identified_person = imagePaths[result[0]]  # Nombre del usuario identificado
+                identified_person = imagePaths[result[0]]
                 recognized_users.add(identified_person)
-                confidence = round((1 - (result[1] / 100)) * 100 * 2, 1)  # Calcular la confianza como porcentaje
+                confidence = round((1 - (result[1] / 100)) * 100 * 2, 1)
                 label_text = '{}'.format(identified_person, confidence)
                 cv2.putText(frame, label_text, (x, y - 25), 2, 1.1, (0, 255, 0), 1, cv2.LINE_AA)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                #end_time = time.time()
-                #duration = end_time - start_time
-                #print(f'Tiempo transcurrido para detectar un rostro: {duration} segundos')
 
-                # Agregar asistencia del alumno a la tabla "asistencia"
                 codigo_alumno = get_code_from_db(identified_person)
                 nombre = get_name_from_db(identified_person)
                 if codigo_alumno:
-                    print(f"codigo_alumno: {codigo_alumno}")  # Debug print
-                    print(f"section_id: {section_id}")  # Debug print
-                    student_belongs = student_belongs_to_section(codigo_alumno, section_id)
-                    print(f"student_belongs: {student_belongs}")  # Debug print
-                    if not student_belongs:
+                    if not belongs_to_section(identified_person, section_id):
                         label_text = 'No pertenece a la seccion'
                         cv2.putText(frame, label_text, (x, y - 50), 2, 1.1, (0, 0, 255), 1, cv2.LINE_AA)
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                        continue  # Saltar el resto del bucle, ya que el estudiante no pertenece a la sección
-                    # Verificar si el alumno ya tiene un registro de asistencia para la fecha actual en asistencia aula
-                    today = date.today()
-                    existing_attendance_aula = db.session.query(AsistenciaAula).join(Usuario).filter(
-                        Usuario.codigo_alumno == codigo_alumno, AsistenciaAula.fecha == today).first()
-                    if existing_attendance_aula:
-                        #logging.info(f"El alumno {identified_person} ya tiene un registro de asistencia para hoy en asistencia aula.")
-                        pass
+
+                        identified_person_key = f"NP_{identified_person}"
+                        detection_counters[identified_person_key] = detection_counters.get(identified_person_key, 0) + 1
                     else:
-                        # Agregar el registro de asistencia en asistencia aula solo si no existe uno para la fecha actual
-                        add_attendance_aula(codigo_alumno, section_id)
-                else:
-                    #logging.error(f"No se encontró el código de alumno para el nombre: {identified_person}")
-                    pass
+                        today = date.today()
+                        existing_attendance_aula = db.session.query(AsistenciaAula).join(Usuario).filter(
+                            Usuario.codigo_alumno == codigo_alumno, AsistenciaAula.fecha == today).first()
+                        if not existing_attendance_aula:
+                            add_attendance_aula(codigo_alumno, section_id)
             else:
                 cv2.putText(frame, 'Desconocido', (x, y - 20), 2, 0.8, (0, 0, 255), 1, cv2.LINE_AA)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                #show_alert(frame)  # Mostrar la alerta en la ventana
 
-            # Ocultar los valores de predicción
-            cv2.rectangle(frame, (x, y + h), (x + w, y + h + 40), (0, 0, 0),
-                          -1)  # Rectángulo negro para ocultar el texto
+                detection_key = "Desconocido"
+                detection_counters[detection_key] = detection_counters.get(detection_key, 0) + 1
+
+            cv2.rectangle(frame, (x, y + h), (x + w, y + h + 40), (0, 0, 0), -1)
             cv2.putText(frame, 'Confianza: {}%'.format(confidence), (x, y + h + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9,
-                        (255, 255, 0), 2)  # Mostrar solo el texto de la confianza en amarillo
+                        (255, 255, 0), 2)
+
+        # Verificar los contadores después del bucle de rostros
+        for key, count in detection_counters.items():
+            if count >= 30:
+                if key == "Desconocido":
+                    new_entry = RostrosNoReconocidos(tipo='No Reconocido', datos='persona sin registro')
+                    db.session.add(new_entry)
+                elif key.startswith("NP_"):
+                    user_id = key.split("_")[1]
+                    user = Usuario.query.filter_by(codigo_alumno=user_id).first()
+                    datos = f"{user.nombre}"
+                    tipo_valor = f"No Pertecene ({section_name}"
+                    new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=datos)
+                    db.session.add(new_entry)
+                detection_counters[key] = 0
 
         cv2.imshow('Asistencia', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+    db.session.commit()
 
     cap.release()
     cv2.destroyAllWindows()
@@ -206,13 +207,11 @@ def start_aula():
         cv2.putText(frame, 'Captura de video finalizada', (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     codigo_alumno, hora, *_ = extract_attendance_from_db()
-    #logging.info("Datos de asistencia obtenidos de la base de datos (asistencia aula):")
     for c, h in zip(codigo_alumno, hora):
         logging.info(f"Código: {c}, Hora: {h}")
 
-    #if request.is_xhr:  # Si la solicitud es AJAX
     if request.method == "POST":
-        return render_template('attendance_aula.html', codigo_alumno=codigo_alumno, hora=hora, datetoday2=datetoday2, url=request.url )
+        return render_template('attendance_aula.html', codigo_alumno=codigo_alumno, hora=hora, datetoday2=datetoday2, url=request.url)
 
     return render_template('panel_docente.html')
 
@@ -226,111 +225,108 @@ def asignar_cubiculo():
     results = {'numero_cubiculo': numero_cubiculo}
     return jsonify(results)
 
+
 @routes_blueprint.route('/start/laboratorio', methods=['GET', 'POST'])
 def start_laboratorio():
+    cap = cv2.VideoCapture(0)
+    ret = True
+    recognized_users = set()
+    frame = None
+    detection_counters = {}  # Contador de detecciones
 
-        cap = cv2.VideoCapture(0)
-        ret = True
-        recognized_users = set()
-        frame = None  # Variable frame inicializada fuera del bucle
+    face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+    face_recognizer.read('static/modelo_LBPHFace.xml')
+    faceClassif = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    dataPath = 'static/faces'
+    imagePaths = os.listdir(dataPath)
+    section_id = request.form['section_name']
+    section_name = get_section_name(section_id)
+    numero_cubiculo = request.form['numero_cubiculo']
 
-        # Crear el reconocedor de rostros LBPH
-        face_recognizer = cv2.face.LBPHFaceRecognizer_create()
-        face_recognizer.read('static/modelo_LBPHFace.xml')
+    while ret:
+        ret, frame = cap.read()
+        if not ret:
+            flash('Error capturing video from the camera.', 'error')
+            break
 
-        # Cargar el clasificador de detección de rostros
-        faceClassif = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        auxFrame = gray.copy()
+        faces = faceClassif.detectMultiScale(gray, 1.3, 5)
+        for (x, y, w, h) in faces:
+            rostro = auxFrame[y:y + h, x:x + w]
+            rostro = cv2.resize(rostro, (150, 150), interpolation=cv2.INTER_CUBIC)
+            result = face_recognizer.predict(rostro)
+            confidence = 0
 
-        dataPath = 'static/faces'  # Cambia a la ruta donde hayas almacenado Data
-        imagePaths = os.listdir(dataPath)
-        print('imagePaths=', imagePaths)
+            if result[1] < 70:
+                identified_person = imagePaths[result[0]]
+                recognized_users.add(identified_person)
+                confidence = round((1 - (result[1] / 100)) * 100 * 1.5, 2)
+                label_text = '{}'.format(identified_person, confidence)
+                cv2.putText(frame, label_text, (x, y - 25), 2, 1.1, (0, 255, 0), 1, cv2.LINE_AA)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-        section_id = request.form['section_name']
-        section_name = get_section_name(section_id)
-        numero_cubiculo = request.form['numero_cubiculo']
+                codigo_alumno = get_code_from_db(identified_person)
+                if codigo_alumno:
+                    if not belongs_to_section(identified_person, section_id):
+                        label_text = 'No pertenece a la seccion'
+                        cv2.putText(frame, label_text, (x, y - 50), 2, 1.1, (0, 0, 255), 1, cv2.LINE_AA)
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-        while ret:
-            ret, frame = cap.read()
+                        # Incrementar el contador de rostros no pertenecientes
+                        detection_key = f"NP_{identified_person}"
+                        detection_counters[detection_key] = detection_counters.get(detection_key, 0) + 1
+                        if detection_counters[detection_key] >= 60:  # 2 segundos si asumimos 30 fps
+                            # Registro de rostro que no pertenece
+                            nombre = get_name_from_db(identified_person)
+                            tipo_valor = f"No Pertecene ({section_name}"
+                            new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=nombre)
+                            db.session.add(new_entry)
+                            detection_counters[detection_key] = 0  # Reiniciar el contador
 
-            if not ret:
-                flash('Error capturing video from the camera.', 'error')
-                break
+                        continue  # Saltar el resto del bucle, ya que el estudiante no pertenece a la sección
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            auxFrame = gray.copy()
+                    today = date.today()
+                    existing_attendance_lab = db.session.query(AsistenciaLaboratorio).join(Usuario).filter(
+                        Usuario.codigo_alumno == codigo_alumno, AsistenciaLaboratorio.fecha == today).first()
+                    if not existing_attendance_lab:
+                        add_attendance_laboratorio(numero_cubiculo, codigo_alumno, section_id)
+            else:
+                cv2.putText(frame, 'Desconocido', (x, y - 20), 2, 0.8, (0, 0, 255), 1, cv2.LINE_AA)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-            faces = faceClassif.detectMultiScale(gray, 1.3, 5)
+                # Incrementar el contador para rostros desconocidos
+                detection_key = "Desconocido"
+                detection_counters[detection_key] = detection_counters.get(detection_key, 0) + 1
+                if detection_counters[detection_key] >= 30:  # 2 segundos si asumimos 30 fps
+                    new_entry = RostrosNoReconocidos(tipo='No Reconocido', datos='persona sin registro')
+                    db.session.add(new_entry)
+                    detection_counters[detection_key] = 0  # Reiniciar el contador
 
-            for (x, y, w, h) in faces:
-                rostro = auxFrame[y:y + h, x:x + w]
-                rostro = cv2.resize(rostro, (150, 150), interpolation=cv2.INTER_CUBIC)
-                result = face_recognizer.predict(rostro)
+            cv2.rectangle(frame, (x, y + h), (x + w, y + h + 40), (0, 0, 0), -1)
+            cv2.putText(frame, 'Confianza: {}%'.format(confidence), (x, y + h + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9,
+                        (255, 255, 0), 2)
 
-                confidence = 0  # Valor predeterminado de confianza
+        cv2.imshow('Asistencia', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-                if result[1] < 70:
-                    identified_person = imagePaths[result[0]]  # Nombre del usuario identificado
-                    recognized_users.add(identified_person)
-                    confidence = round((1 - (result[1] / 100)) * 100 * 1.5, 2)  # Calcular la confianza como porcentaje
-                    label_text = '{}'.format(identified_person, confidence)
-                    cv2.putText(frame, label_text, (x, y - 25), 2, 1.1, (0, 255, 0), 1, cv2.LINE_AA)
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    cap.release()
+    cv2.destroyAllWindows()
 
-                    # Agregar asistencia del alumno a la tabla "asistencia"
-                    codigo_alumno = get_code_from_db(identified_person)
-                    nombre = get_name_from_db(identified_person)
-                    if codigo_alumno:
-                        #print(f"codigo_alumno: {codigo_alumno}")  # Debug print
-                        #print(f"section_id: {section_id}")  # Debug print
-                        student_belongs = student_belongs_to_section(codigo_alumno, section_id)
-                        print(f"student_belongs: {student_belongs}")  # Debug print
-                        if not student_belongs:
-                            label_text = 'No pertenece a la seccion'
-                            cv2.putText(frame, label_text, (x, y - 50), 2, 1.1, (0, 0, 255), 1, cv2.LINE_AA)
-                            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                            continue  # Saltar el resto del bucle, ya que el estudiante no pertenece a la sección
-                        # Verificar si el alumno ya tiene un registro de asistencia para la fecha actual en asistencia laboratorio
-                        today = date.today()
-                        existing_attendance_lab = db.session.query(AsistenciaLaboratorio).join(Usuario).filter(
-                            Usuario.codigo_alumno == codigo_alumno, AsistenciaLaboratorio.fecha == today).first()
-                        if existing_attendance_lab:
-                            logging.info(f"El alumno {identified_person} ya tiene un registro de asistencia para hoy en asistencia laboratorio.")
-                        else:
-                            # Agregar el registro de asistencia en asistencia laboratorio solo si no existe uno para la fecha actual
-                            add_attendance_laboratorio(numero_cubiculo, codigo_alumno, section_id)
-                    else:
-                        logging.error(f"No se encontró el código de alumno para el nombre: {identified_person}")
-                else:
-                    cv2.putText(frame, 'Desconocido', (x, y - 20), 2, 0.8, (0, 0, 255), 1, cv2.LINE_AA)
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                    #show_alert(frame)  # Mostrar la alerta en la ventana
+    if frame is not None:
+        cv2.putText(frame, 'Captura de video finalizada', (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-                # Ocultar los valores de predicción
-                cv2.rectangle(frame, (x, y + h), (x + w, y + h + 40), (0, 0, 0),
-                              -1)  # Rectángulo negro para ocultar el texto
-                cv2.putText(frame, 'Confianza: {}%'.format(confidence), (x, y + h + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9,
-                            (255, 255, 0), 2)  # Mostrar solo el texto de la confianza en amarillo
+    numero_cubiculo, codigo_alumno, hora, *_ = extract_attendance_from_db()
+    logging.info("Datos de asistencia obtenidos de la base de datos (asistencia laboratorio):")
+    for m, c, h in zip(numero_cubiculo, codigo_alumno, hora):
+        logging.info(f"Codigo: {m}, Hora: {c}, Numero de cubiculo: {h}")
 
-            cv2.imshow('Asistencia', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+    if request.method == "POST":
+        return render_template('attendance_laboratorio.html', codigo_alumno=codigo_alumno,
+                               numero_cubiculo=numero_cubiculo, hora=hora, datetoday2=datetoday2, url=request.url)
+    return render_template('panel_docente.html')
 
-        cap.release()
-        cv2.destroyAllWindows()
-
-        if frame is not None:
-            cv2.putText(frame, 'Captura de video finalizada', (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-        numero_cubiculo, codigo_alumno, hora, *_ = extract_attendance_from_db()
-
-        logging.info("Datos de asistencia obtenidos de la base de datos (asistencia laboratorio):")
-        for m, c, h in zip(numero_cubiculo, codigo_alumno, hora):
-            logging.info(f"Codigo: {m}, Hora: {c}, Numero de cubiculo: {h}")
-
-        if request.method == "POST":  # Si la solicitud es AJAX
-            return render_template('attendance_laboratorio.html', codigo_alumno=codigo_alumno,
-                                   numero_cubiculo=numero_cubiculo, hora=hora, datetoday2=datetoday2, url=request.url)
-        return render_template('panel_docente.html')
 
 @routes_blueprint.route('/add', methods=['GET', 'POST'])
 def add():

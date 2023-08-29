@@ -1,7 +1,8 @@
 import cv2
 import os
 import logging
-from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, NuevoRegistro
+from database import db, AsistenciaLaboratorio, RegistroRostros, Usuario, AsistenciaAula, Secciones, NuevoRegistro, \
+    estudiante_seccion
 from flask_bcrypt import Bcrypt
 import pygame
 from datetime import datetime, date
@@ -262,3 +263,17 @@ def correo_existe(correo):
     except Exception as e:
         print(f"Error al verificar correo: {e}")
         return False
+
+
+def belongs_to_section(identified_person, section_id):
+    # Primero, obtén el ID del estudiante usando el código.
+    student = Usuario.query.filter_by(codigo_alumno=identified_person).first()
+    if not student:
+        return False  # Si no se encuentra el estudiante, regresa False.
+
+    # Ahora, usa el ID del estudiante para consultar la tabla estudiante_seccion.
+    entry = db.session.query(estudiante_seccion).filter_by(estudiante_id=student.id, seccion_id=section_id).first()
+
+    # Si encontramos una entrada, significa que el estudiante pertenece a la sección.
+    return entry is not None
+
