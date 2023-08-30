@@ -16,6 +16,10 @@ from email.message import EmailMessage
 import smtplib
 # Importa las configuraciones desde config.py
 from correo_config import SERVIDOR_SMTP, PUERTO, CORREO_REMITENTE, CONTRASENA_REMITENTE
+import win32api
+import win32security
+from ntsecuritycon import FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS
+
 
 # Extraer la cara de una imagen
 def extract_faces(img,
@@ -276,4 +280,3 @@ def belongs_to_section(identified_person, section_id):
 
     # Si encontramos una entrada, significa que el estudiante pertenece a la sección.
     return entry is not None
-

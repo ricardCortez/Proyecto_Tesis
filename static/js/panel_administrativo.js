@@ -69,7 +69,7 @@ $("#enlace-link_1").click(function(e) {
     e.preventDefault();
   $("#campo-dinamico").empty();
       $.ajax({
-        url: '/reporte_asistencia',
+        url: '/students_report',
         type: 'GET',
         success: function(data) {
           $("#campo-dinamico").html(data);

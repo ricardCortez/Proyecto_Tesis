@@ -23,7 +23,17 @@
 
   <div id="campo-dinamico">
     {% if usuario %}
-    {% if usuario and primer_archivo %}
+    <!-- Button to initiate webcam -->
+    <button id="update-photo-btn">Actualizar foto</button>
+    <!-- Initially hidden Webcam integration -->
+    <div id="webcam-section" style="display:none;">
+        <video id="webcam" width="320" height="240" autoplay></video>
+        <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+        <button id="capture-btn">Tomar foto</button>
+        <button id="save-btn">Guardar foto</button>
+    </div>
+    <br>
+  {% if usuario and primer_archivo %}
     <img id="myImage" src="{{ url_for('static', filename='faces/' + usuario.codigo_alumno + '/' + primer_archivo) }}" alt="Imagen de rostro del usuario">
     {% endif %}
 
@@ -32,16 +42,23 @@
     <p>Nombre: {{ usuario.nombre }}</p>
     <p>Ciclo Actual: {{ usuario.ciclo_academico }}</p>
     <p>Fecha de ingreso: {{ usuario.fecha_ingreso }}</p>
+    <p>Fecha de foto: {{ usuario.ultima_actualizacion_foto }}</p>
 
-    {% if ultima_asistencia %}
+    {% if ultima_asistencia_aula %}
     <h2>Última asistencia a la aula:</h2>
-    <p>Fecha de registro: {{ ultima_asistencia.fecha }}</p>
-    <p>Hora de registro: {{ ultima_asistencia.hora.strftime('%H:%M:%S') }}</p>
-    {% else %}
-    <p>Este alumno no tiene registros de asistencia a la aula.</p>
+    <p>Fecha de registro: {{ ultima_asistencia_aula.fecha }}</p>
+    <p>Hora de registro: {{ ultima_asistencia_aula.hora.strftime('%H:%M:%S') }}</p>
     {% endif %}
 
-    {% elif no_results %}
+    {% if ultima_asistencia_laboratorio %}
+    <h2>Última asistencia al laboratorio:</h2>
+    <p>Fecha de registro: {{ ultima_asistencia_laboratorio.fecha }}</p>
+    <p>Hora de registro: {{ ultima_asistencia_laboratorio.hora.strftime('%H:%M:%S') }}</p>
+    {% else %}
+    <p>Este alumno no tiene registros de asistencia al laboratorio.</p>
+    {% endif %}
+
+    {% else %}
     <p>No se encontró ningún usuario con el código de alumno proporcionado.</p>
     {% endif %}
   </div>

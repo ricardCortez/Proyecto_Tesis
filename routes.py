@@ -1,17 +1,21 @@
+import base64
 import logging
 from datetime import datetime, date
 import random
 import os
 import imutils
 import cv2
+import csv
 import pandas as pd
+import pdfcrowd
 from sqlalchemy import or_
-from flask import Blueprint, render_template, flash, request, jsonify, session, redirect
+from flask import Blueprint, render_template, flash, request, jsonify, session, redirect, Response, \
+make_response
 from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula, AsistenciaLaboratorio, Secciones, \
     profesor_seccion, estudiante_seccion, RostrosNoReconocidos
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
-    admin_required, personal_required, docente_required, get_section_name, student_belongs_to_section, correo_existe, \
+    admin_required, personal_required, docente_required, get_section_name, correo_existe, \
     enviar_correo, belongs_to_section
 from app import datetoday2
 from werkzeug.security import generate_password_hash
@@ -58,7 +62,7 @@ def ver_reporte():
 
 @routes_blueprint.route('/validar')
 def validar():
-    return render_template('usuario.html')
+    return render_template('students_report.html')
 # ------------------------- fin de las rutas del administrador --------------------
 
 # ------------------------- rutas del personal administrativo --------------------
@@ -897,6 +901,44 @@ def search_student_laboratorio():
 
     return render_template('resultados_busqueda.html', no_results=True)
 
+@routes_blueprint.route('/search_student_combined', methods=['POST'])
+def search_student_combined():
+    codigo_alumno = request.form['codigo_alumno']
+
+    # Realiza la búsqueda del usuario
+    usuario = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
+
+    # Variables iniciales
+    pertenece_aula = False
+    pertenece_seccion = False
+    ultima_asistencia_aula = None
+    ultima_asistencia_laboratorio = None  # Variable para la última asistencia en el laboratorio
+    ruta_imagen = ""
+    primer_archivo = None
+
+    if usuario:
+        pertenece_aula = True
+        # Busca el último registro de asistencia para el alumno en aula
+        ultima_asistencia_aula = AsistenciaAula.query.filter_by(usuario_id=usuario.id).order_by(
+            AsistenciaAula.fecha.desc(), AsistenciaAula.hora.desc()).first()
+
+        # Busca el último registro de asistencia para el alumno en laboratorio
+        ultima_asistencia_laboratorio = AsistenciaLaboratorio.query.filter_by(usuario_id=usuario.id).order_by(
+            AsistenciaLaboratorio.fecha.desc(), AsistenciaLaboratorio.hora.desc()).first()
+
+        # Intenta obtener la ruta de la imagen
+        try:
+            ruta_directorio = os.path.join('static', 'faces', codigo_alumno)
+            primer_archivo = next(os.scandir(ruta_directorio), None)
+            if primer_archivo is not None:
+                ruta_imagen = os.path.join(ruta_directorio, primer_archivo.name)
+        except FileNotFoundError:
+            print("No se encontró el directorio del rostro para el alumno.")
+
+    return render_template('search_student.html', usuario=usuario, pertenece_aula=pertenece_aula,
+                           ultima_asistencia_aula=ultima_asistencia_aula, ultima_asistencia_laboratorio=ultima_asistencia_laboratorio,
+                           ruta_imagen=ruta_imagen, primer_archivo=primer_archivo.name if primer_archivo else None)
+
 
 @routes_blueprint.route('/buscar_usuario_por_dni', methods=['POST'])
 def buscar_usuario_por_dni():
@@ -1077,3 +1119,80 @@ def verificar_correo():
         return jsonify(success=True, message="Correo existe")
     else:
         return jsonify(success=False, message="Correo no registrado"), 404
+
+################################################################
+@routes_blueprint.route('/update_student_image', methods=['POST'])
+def update_student_image():
+    image_data = request.form['image_data']
+    codigo_alumno = request.form['codigo_alumno']
+
+    # Decodificar la imagen
+    _, encoded_image = image_data.split(",", 1)
+    decoded_image = base64.b64decode(encoded_image)
+
+    # Buscar al estudiante en la tabla usuarios
+    usuario = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
+
+    if not usuario:
+        return jsonify(success=False, message="Usuario no encontrado."), 400
+
+    # Construir la ruta de la imagen
+    image_filename = f"{codigo_alumno}_0.jpg"
+    image_path = os.path.join('static', 'faces', codigo_alumno, image_filename)
+
+    # Guardar (sobrescribir) la imagen
+    try:
+        with open(image_path, 'wb') as image_file:
+            image_file.write(decoded_image)
+    except Exception as e:
+        return jsonify(success=False, message=str(e)), 400
+
+    # Actualizar la fecha de la última actualización en la tabla usuarios
+    usuario.ultima_actualizacion_foto = datetime.now()
+    db.session.commit()
+
+    return jsonify(success=True, message="Imagen actualizada exitosamente.")
+
+@routes_blueprint.route('/students_report')
+def students_report():
+    usuarios = Usuario.query.all()  # Obtener todos los usuarios
+    return render_template('students_report.html', usuarios=usuarios)
+
+
+@routes_blueprint.route('/generate_pdf')
+def generate_pdf():
+    usuarios = Usuario.query.all()  # Obtener todos los usuarios
+    html = render_template('students_report.html', usuarios=usuarios)
+
+    # Crear una instancia de pdfcrowd con tu clave de API
+    client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
+
+    # Convertir HTML a PDF y obtener el PDF como bytes
+    pdf_data = client.convertString(html)
+
+    # Devolver PDF como respuesta
+    response = make_response(pdf_data)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=report.pdf'
+    return response
+
+@routes_blueprint.route('/generate_csv')
+def generate_csv():
+    usuarios = Usuario.query.all()  # Obtener todos los usuarios
+
+    def generate():
+        data = csv.StringIO()
+        csv_writer = csv.writer(data)
+
+        # Escribir encabezados
+        csv_writer.writerow(['Código de Alumno', 'Nombre', 'Última Actualización de Foto'])
+
+        # Escribir datos de cada usuario
+        for usuario in usuarios:
+            csv_writer.writerow([usuario.codigo_alumno, usuario.nombre, usuario.ultima_actualizacion_foto])
+
+        yield data.getvalue()
+
+    response = Response(generate(), mimetype='text/csv')
+    response.headers.set("Content-Disposition", "attachment", filename="report.csv")
+    return response
