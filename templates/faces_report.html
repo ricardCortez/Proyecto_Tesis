@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Informe de Rostros no Reconocidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+    <h1>Informe de Rostros no Reconocidos</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Tipo</th>
+                <th>Datos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rostro in rostros %}
+            <tr>
+                <td>{{ rostro.id }}</td>
+                <td>{{ rostro.fecha }}</td>
+                <td>{{ rostro.hora }}</td>
+                <td>{{ rostro.tipo }}</td>
+                <td>{{ rostro.datos }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Total de Registros: {{ total_records }}</h2>
+    <!-- Contenedor para el gráfico -->
+    <div id="myChart" style="width:100%; height:400px;"></div>
+    <br>
+    <a href="/generate_pdf_faces" target="_blank">Descargar Informe en PDF</a>
+    <br>
+    <a href="/generate_csv_faces">Descargar Informe en CSV</a>
+
+    <script>
+        window.total_records = {{ total_records }};
+        window.no_reconocido_count = {{ no_reconocido_count }};
+        window.no_pertenece_count = {{ no_pertenece_count }};
+        // Imprimir los valores en la consola del navegador
+        console.log("No reconocido count:", window.no_reconocido_count);
+        console.log("No pertenece count:", window.no_pertenece_count);
+        console.log("total:", window.total_records);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="static/js/faces_report.js"></script>
+</body>
+</html>

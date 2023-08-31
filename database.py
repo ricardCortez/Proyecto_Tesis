@@ -1,5 +1,6 @@
 import datetime
 
+from flask import render_template
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()

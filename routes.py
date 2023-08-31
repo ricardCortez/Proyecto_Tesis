@@ -1108,7 +1108,6 @@ def validar_pin():
     else:
         return jsonify(success=False, message="PIN incorrecto"), 401
 
-
 @routes_blueprint.route('/verificar_correo', methods=['POST'])
 def verificar_correo():
     data = request.json
@@ -1158,11 +1157,26 @@ def students_report():
     usuarios = Usuario.query.all()  # Obtener todos los usuarios
     return render_template('students_report.html', usuarios=usuarios)
 
-
 @routes_blueprint.route('/generate_pdf')
 def generate_pdf():
     usuarios = Usuario.query.all()  # Obtener todos los usuarios
-    html = render_template('students_report.html', usuarios=usuarios)
+
+    # Obtener el año actual
+    current_year = datetime.now().year
+
+    for usuario in usuarios:
+        # Convertir la fecha de actualización de foto a un objeto datetime
+        date_updated = datetime.combine(usuario.ultima_actualizacion_foto, datetime.min.time())
+
+        # Agregar atributos adicionales al objeto usuario para determinar el estado de actualización y el estilo
+        if date_updated.year == current_year:
+            usuario.update_status = "Actualizado"
+            usuario.update_style = "color:green"
+        else:
+            usuario.update_status = "Necesita actualizar"
+            usuario.update_style = "color:red"
+
+    html = render_template('students_report.html', usuarios=usuarios, pdf_generation=True)
 
     # Crear una instancia de pdfcrowd con tu clave de API
     client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
@@ -1174,6 +1188,24 @@ def generate_pdf():
     response = make_response(pdf_data)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=report.pdf'
+    return response
+
+@routes_blueprint.route('/generate_pdf_faces')
+def generate_pdf_faces():
+    rostros = RostrosNoReconocidos.query.all()  # Obtener todos los rostros no reconocidos
+
+    html = render_template('faces_report.html', rostros=rostros)
+
+    # Crear una instancia de pdfcrowd con tu clave de API
+    client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
+
+    # Convertir HTML a PDF y obtener el PDF como bytes
+    pdf_data = client.convertString(html)
+
+    # Devolver PDF como respuesta
+    response = make_response(pdf_data)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=unrecognized_faces_report.pdf'
     return response
 
 @routes_blueprint.route('/generate_csv')
@@ -1196,3 +1228,37 @@ def generate_csv():
     response = Response(generate(), mimetype='text/csv')
     response.headers.set("Content-Disposition", "attachment", filename="report.csv")
     return response
+
+@routes_blueprint.route('/generate_csv_faces')
+def generate_csv_faces():
+    rostros = RostrosNoReconocidos.query.all()  # Obtener todos los rostros no reconocidos
+
+    def generate():
+        data = csv.StringIO()
+        csv_writer = csv.writer(data)
+
+        # Escribir encabezados
+        csv_writer.writerow(['ID', 'Fecha', 'Hora', 'Tipo', 'Datos'])
+
+        # Escribir datos de cada rostro
+        for rostro in rostros:
+            csv_writer.writerow([rostro.id, rostro.fecha, rostro.hora, rostro.tipo, rostro.datos])
+
+        yield data.getvalue()
+
+    response = Response(generate(), mimetype='text/csv')
+    response.headers.set("Content-Disposition", "attachment", filename="faces_report.csv")
+    return response
+
+@routes_blueprint.route('/faces_report')
+def faces_report():
+    rostros = RostrosNoReconocidos.query.all()
+
+    total_records = RostrosNoReconocidos.query.count()
+    no_reconocido_count = RostrosNoReconocidos.query.filter_by(tipo="No Reconocido").count()
+    no_pertenece_count = RostrosNoReconocidos.query.filter_by(tipo="No Pertenece").count()
+    print("No reconocido count:", no_reconocido_count)
+    print("No pertenece count:", no_pertenece_count)
+
+    return render_template('faces_report.html', rostros=rostros, no_reconocido_count=no_reconocido_count,
+                           no_pertenece_count=no_pertenece_count, total_records=total_records)
