@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function() {
     const passwordModal = document.getElementById('passwordModal');
     const closeModalButton = document.getElementById('closeModal');

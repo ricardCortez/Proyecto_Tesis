@@ -63,6 +63,7 @@ def ver_reporte():
 @routes_blueprint.route('/validar')
 def validar():
     return render_template('students_report.html')
+
 # ------------------------- fin de las rutas del administrador --------------------
 
 # ------------------------- rutas del personal administrativo --------------------
@@ -186,16 +187,31 @@ def start_aula():
         # Verificar los contadores después del bucle de rostros
         for key, count in detection_counters.items():
             if count >= 30:
+                today = date.today()  # Obtener la fecha actual
+
+                # Para rostro no reconocido
                 if key == "Desconocido":
-                    new_entry = RostrosNoReconocidos(tipo='No Reconocido', datos='persona sin registro')
-                    db.session.add(new_entry)
+                    existing_entry = RostrosNoReconocidos.query.filter_by(tipo='No Reconocido',
+                                                                          datos='persona sin registro',
+                                                                          fecha=today).first()
+                    if not existing_entry:
+                        new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=datos)
+
+                        db.session.add(new_entry)
+
+                # Para rostro reconocido que no pertenece a la sección
                 elif key.startswith("NP_"):
                     user_id = key.split("_")[1]
                     user = Usuario.query.filter_by(codigo_alumno=user_id).first()
                     datos = f"{user.nombre}"
                     tipo_valor = f"No Pertecene ({section_name}"
-                    new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=datos)
-                    db.session.add(new_entry)
+
+                    existing_entry = RostrosNoReconocidos.query.filter_by(tipo=tipo_valor, datos=datos,
+                                                                          fecha=today).first()
+                    if not existing_entry:
+                        new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=datos)
+                        db.session.add(new_entry)
+
                 detection_counters[key] = 0
 
         cv2.imshow('Asistencia', frame)
@@ -664,23 +680,23 @@ def actualizar_contraseña():
         db.session.rollback()
         return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
 
+
 @routes_blueprint.route('/update_usuario', methods=['POST'])
 def update_usuario():
     data = request.form
     usuario = NuevoRegistro.query.filter_by(numero_documento=data.get('dni')).first()
 
     if usuario:
-        usuario.nombre = data.get('nombre')
-        usuario.apellido_paterno = data.get('apellido_paterno')
-        usuario.apellido_materno = data.get('apellido_materno')
-        usuario.correo_electronico = data.get('correo_electronico')
-        usuario.celular = data.get('celular')
-        usuario.fecha_naimiento = data.get('fecha_naimiento')
+        if data.get('correo_electronico'):
+            usuario.correo_electronico = data.get('correo_electronico')
+        if data.get('celular'):
+            usuario.celular = data.get('celular')
 
         db.session.commit()  # Asegúrate de que estás usando SQLAlchemy y que db.session está disponible
         return jsonify({'message': 'Datos actualizados correctamente'}), 200
     else:
         return jsonify({'error': 'Usuario no encontrado'}), 404
+
 
 @routes_blueprint.route('/obtener_docentes', methods=['GET'])
 def obtener_docentes():
@@ -956,7 +972,6 @@ def buscar_usuario_por_dni():
             'apellido_materno': usuario.apellido_materno,
             'correo_electronico': usuario.correo_electronico,
             'celular': usuario.celular,
-            'fecha_nacimiento': usuario.fecha_nacimiento,
             'clave_asignada': usuario.clave_asignada,
         }), 200
     else:

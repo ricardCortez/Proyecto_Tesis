@@ -44,15 +44,14 @@
             <button id="changePasswordButton" class="btn">Actualizar contraseña</button>
 
         </div>
-        <div class="modal" id="passwordModal">
+
+        <div id="passwordModal" class="modal">
             <div class="modal-content">
-                <button id="closeModal" style="position: absolute; right: 10px; top: 10px;">X</button>
-                <h2>Actualizar contraseña</h2>
-                <label for="newPassword">Ingresar contraseña nueva:</label>
-                <input type="password" id="newPassword" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W]).{6,}">
-                <label for="repeatPassword">Repita la nueva contraseña:</label>
-                <input type="password" id="repeatPassword">
-                <button id="savePassword">Cambiar</button>
+                <span id="closeModal" class="close">&times;</span>
+                <p>Cambiar Contraseña</p>
+                <input type="password" id="newPassword" placeholder="Nueva Contraseña">
+                <input type="password" id="repeatPassword" placeholder="Repetir Contraseña">
+                <button id="savePassword">Guardar</button>
             </div>
         </div>
     </form>

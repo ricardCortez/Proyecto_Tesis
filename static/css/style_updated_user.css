@@ -1,0 +1,107 @@
+
+#campo-dinamico body {
+    font-family: 'Roboto', 'Arial', sans-serif;
+    color: #333;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid blue;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.field {
+    display: grid;
+    grid-template-columns: 80px 200px 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+    border-bottom: 1px solid #eaeaea;
+    padding: 10px 0;
+}
+
+.field:last-child {
+    border-bottom: none;
+}
+
+.field label {
+    font-size: 15px;
+    grid-column-start: 2;
+    font-weight: bold;
+    justify-self: start;
+    padding-right: 10px;
+}
+
+.field span, .field input {
+    grid-column-start: 3;
+    justify-self: stretch;
+    padding: 0 10px;
+}
+
+.field input[type="text"], .field input[type="password"] {
+    border: 1px solid #eaeaea;
+    border-radius: 3px;
+}
+
+.field button {
+    font-size: 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.user-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    grid-column-start: 1;
+    grid-row-start: 1;
+    grid-row-end: 4;
+    justify-self: center;
+    align-self: center;
+}
+
+.field .password-label {
+    color: red;
+    font-weight: bold;
+    grid-column-start: 4;
+    grid-row-end: 3;
+}
+
+.field button#changePasswordButton {
+    font-size: 10px !important;
+    grid-column-start: 5;
+    grid-row-end: 4;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#updateButton {
+    display: none;
+}
+}
