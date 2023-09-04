@@ -579,6 +579,7 @@ def datos_usuario():
     else:
         # Para otros perfiles, tomar el ID del usuario desde la sesión
         usuario_id = session.get('usuario_id')
+        print(f"ID del usuario desde la sesión: {usuario_id}")
         usuario = NuevoRegistro.query.get(usuario_id)
 
         if not usuario:
@@ -645,41 +646,33 @@ def generar_pin():
     except Exception as e:
         return jsonify(success=False, message=f"Error al enviar el PIN: {str(e)}")
 
+
 @routes_blueprint.route('/actualizar_contraseña', methods=['POST'])
 def actualizar_contraseña():
-    # Obtener la nueva contraseña y el correo del formulario
-    nueva_contraseña = request.form.get('nueva_contraseña')
-    repetir_contraseña = request.form.get('repetir_contraseña')
-    correo = request.form.get('correo')  # Obtener el correo del formulario
-    logging.debug(f"Datos del formulario: {request.form}")
+    # Asegurarse de que el usuario esté autenticado
+    usuario_id = session.get('usuario_id')
+    if not usuario_id:
+        return jsonify({"error": "Usuario no autenticado"}), 401
+
+    # Obtener la nueva contraseña y la confirmación desde el cuerpo de la solicitud
+    data = request.json
+    nueva_contraseña = data.get('nueva_contraseña')
+    confirmacion_contraseña = data.get('confirmacion_contraseña')
 
     # Verificar que las contraseñas coincidan
-    if nueva_contraseña != repetir_contraseña:
-        return jsonify(success=False, message="Las contraseñas no coinciden"), 400
+    if nueva_contraseña != confirmacion_contraseña:
+        return jsonify({"error": "Las contraseñas no coinciden"}), 400
 
-    # Buscar el usuario en la base de datos usando el correo
-    usuario = NuevoRegistro.query.filter_by(correo_electronico=correo).first()
-
-    # Agregar el registro
-    if usuario:
-        logging.debug(f"Usuario obtenido: {usuario.correo_electronico}")
-    else:
-        logging.debug("No se encontró ningún usuario con ese correo electrónico.")
-
+    # Buscar el usuario en la base de datos
+    usuario = NuevoRegistro.query.get(usuario_id)
     if not usuario:
-        return jsonify(success=False, message="Usuario no encontrado"), 404
+        return jsonify({"error": "Usuario no encontrado"}), 404
 
     # Actualizar la contraseña del usuario y guardar en la base de datos
-    hashed_password = generate_password_hash(nueva_contraseña)
-    usuario.clave_asignada = hashed_password
+    usuario.clave_asignada = generate_password_hash(nueva_contraseña)
+    db.session.commit()
 
-    try:
-        db.session.commit()
-        return jsonify(success=True, message="Contraseña actualizada con éxito")
-    except Exception as e:
-        db.session.rollback()
-        return jsonify(success=False, message=f"Error al actualizar: {str(e)}")
-
+    return jsonify({"message": "Contraseña actualizada con éxito"}), 200
 
 @routes_blueprint.route('/update_usuario', methods=['POST'])
 def update_usuario():

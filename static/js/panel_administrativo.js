@@ -19,7 +19,7 @@ $("#enlace-link_1").click(function(e) {
             });
 
             $.ajax({
-              url: "/actualizar_usuario",
+              url: "/actualizar_contraseña",
               type: "POST",
               data: JSON.stringify(formData),
               contentType: "application/json;charset=UTF-8",

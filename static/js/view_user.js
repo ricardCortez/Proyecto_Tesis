@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
     const passwordModal = document.getElementById('passwordModal');
     const closeModalButton = document.getElementById('closeModal');
-    const changePasswordButton = document.getElementById('changePassword');
-    const savePasswordButton = document.getElementById('savePassword');
+    const changePasswordButton = document.getElementById('changePasswordButton');
+    const savePasswordButton = document.getElementById('savePasswordButton');
 
     function showPasswordModal() {
         passwordModal.style.display = "block";
@@ -16,51 +16,12 @@ document.addEventListener("DOMContentLoaded", function() {
         hidePasswordModal();
     });
 
-    changePasswordButton.addEventListener('click', function() {
+    changePasswordButton.addEventListener('click', function(event) {
+        event.preventDefault();  // Evitar el comportamiento predeterminado
         showPasswordModal();
     });
-
-   function changePassword() {
-        const newPassword = $("#newPassword").val();
-        const repeatPassword = $("#repeatPassword").val();
-
-        if (newPassword !== repeatPassword) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Las contraseñas no coinciden.'
-            });
-            return;
-        }
-
-        $.post('/update_usuario', { clave_asignada: newPassword })
-            .done(function() {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: 'Contraseña actualizada correctamente.'
-                });
-                $("#passwordModal").hide();
-            })
-            .fail(function() {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al actualizar la contraseña.'
-                });
-            });
-    }
-
-    // Inicializamos valores originales
-    updateOriginalValues();
-
-    // Event bindings
-    $("#changePassword").click(function() { $("#passwordModal").show(); });
-    $("#closeModal").click(function() { $("#passwordModal").hide(); });
-    $("#savePassword").click(changePassword);
 });
 
-// Modal functionality
 $(document).ready(function() {
     // Open the modal
     $("#changePasswordButton").click(function() {
@@ -79,3 +40,42 @@ $(document).ready(function() {
         }
     });
 });
+
+function handlePasswordChange() {
+    console.log("handlePasswordChange funcion llamada.");
+    var nueva_contraseña = $("#newPassword").val();
+    var confirmacion_contraseña = $("#repeatPassword").val();
+
+    // Validate the input
+    console.log("revisando campos vacios");
+    if (!nueva_contraseña || !confirmacion_contraseña) {
+        Swal.fire('Error', 'Ambos campos son obligatorios.', 'error');
+        return;
+    }
+
+    console.log("Las contraseñas no coinciden");
+    if (nueva_contraseña !== confirmacion_contraseña) {
+        Swal.fire('Error', 'Las contraseñas no coinciden.', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: '/actualizar_contraseña',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ nueva_contraseña: nueva_contraseña, confirmacion_contraseña: confirmacion_contraseña }),
+        success: function(response) {
+            if (response.message) {
+                Swal.fire('¡Éxito!', 'Contraseña actualizada correctamente.', 'success');
+                $("#passwordModal").hide();
+            } else {
+                Swal.fire('Error', 'Error al actualizar la contraseña.', 'error');
+            }
+        },
+        error: function(error) {
+            Swal.fire('Error', 'Ocurrió un error al enviar la solicitud.', 'error');
+        }
+    });
+}
+
+$("#savePassword").click(handlePasswordChange);

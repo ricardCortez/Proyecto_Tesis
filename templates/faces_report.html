@@ -13,7 +13,7 @@
     <table border="1">
         <thead>
             <tr>
-                <th>ID</th>
+                <!--<th>ID</th>-->
                 <th>Fecha</th>
                 <th>Hora</th>
                 <th>Tipo</th>
@@ -23,7 +23,7 @@
         <tbody>
             {% for rostro in rostros %}
             <tr>
-                <td>{{ rostro.id }}</td>
+                <!--<td>{{ rostro.id }}</td>-->
                 <td>{{ rostro.fecha }}</td>
                 <td>{{ rostro.hora }}</td>
                 <td>{{ rostro.tipo }}</td>
@@ -33,13 +33,13 @@
         </tbody>
     </table>
     <h2>Total de Registros: {{ total_records }}</h2>
-    <!-- Contenedor para el gráfico -->
-    <div id="myChart" style="width:100%; height:400px;"></div>
+    <!-- Contenedor para el gráfico
+    <div id="myChart" style="width:100%; height:400px;"></div>-->
     <br>
     <a href="/generate_pdf_faces" target="_blank">Descargar Informe en PDF</a>
     <br>
     <a href="/generate_csv_faces">Descargar Informe en CSV</a>
-
+<!--
     <script>
         window.total_records = {{ total_records }};
         window.no_reconocido_count = {{ no_reconocido_count }};
@@ -48,7 +48,7 @@
         console.log("No reconocido count:", window.no_reconocido_count);
         console.log("No pertenece count:", window.no_pertenece_count);
         console.log("total:", window.total_records);
-    </script>
+    </script>-->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="static/js/faces_report.js"></script>
 </body>
