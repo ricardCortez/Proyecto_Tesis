@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style_updated_user.css">
+    <title>Actualizar Usuario</title>
+
+</head>
+<body>
+        <div class="search-section">
+            <input type="text" id="search_dni" placeholder="Ingrese DNI">
+            <button id="search_button">Buscar</button>
+        </div>
+    <div class="container">
+
+        <div class="user-details" style="display: none;">
+            <div class="field">
+                <label for="tipo_perfil">Tipo Perfil:</label>
+                <span id="tipo_perfil_text">{{ usuario.tipo_perfil }}</span>
+
+                <img src="/static/main/images/img.png" alt="User Image" class="user-image">
+                <button id="editButton">Editar</button>
+                <button id="updateButton" type="button" onclick="updateUserData();">Guardar</button>
+
+    <button id="cancelButton" type="button">Cancelar</button>
+
+    <!-- Sección para actualizar contraseña -->
+    <button id="updatePasswordButton" type="button" onclick="toggleUpdatePasswordSection();">Actualizar Contraseña</button>
+
+    <div id="updatePasswordSection" style="display: none;">
+        <label id="new_password_text" for="nueva_contraseña">Nueva Contraseña:</label>
+        <input type="password" id="nueva_contraseña" name="nueva_contraseña">
+
+        <label id="repeat_password_text" for="confirmacion_contraseña">Confirmar Contraseña:</label>
+        <input type="password" id="confirmacion_contraseña" name="confirmacion_contraseña">
+
+        <button id="updatePassword" type="button" onclick="updatePassword();">Guardar Nueva Contraseña</button>
+    </div>
+
+                <label for="numero_documento">Numero documento:</label>
+                <span id="numero_documento_text">{{ usuario.numero_documento }}</span>
+
+                <label for="nombre">Nombre:</label>
+                <span id="nombre_text">{{ usuario.nombre }}</span>
+
+                <label for="apellido_paterno">Apellido Paterno:</label>
+                <span id="apellido_paterno_text">{{ usuario.apellido_paterno }}</span>
+
+                <label for="apellido_materno">Apellido Materno:</label>
+                <span id="apellido_materno_text">{{ usuario.apellido_materno }}</span>
+
+                <label for="fecha_nacimiento">Fecha Nacimiento:</label>
+                <span id="fecha_nacimiento_text">{{ usuario.fecha_nacimiento }}</span>
+
+                <label for="correo_electronico">Correo:</label>
+                <span id="correo_electronico_text">{{ usuario.correo_electronico }}</span>
+                <input type="text" id="correo_electronico_input" class="data-input" style="display: none;">
+
+                <label for="celular">Celular:</label>
+                <span id="celular_text">{{ usuario.celular }}</span>
+                <input type="text" id="celular_input" class="data-input" style="display: none;">
+
+                <label for="clave_asignada" class="password-label">Contraseña:</label>
+                <span id="clave_asignada_text">******</span>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/update_user.js"></script>
+</body>
+</html>

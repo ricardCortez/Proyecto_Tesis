@@ -1,0 +1,59 @@
+
+#campo dinamico
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 40px;
+    color: #333;
+    background-color: #fff;
+}
+
+h1, h2, a {
+    color: #007BFF;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #007BFF;
+    color: white;
+}
+
+tr:hover {
+    background-color: #c4c4c4;
+}
+
+/* Styles for the year selector and the button */
+label {
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+input[type="number"], button {
+    padding: 10px 15px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    border: 1px solid #007BFF;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}

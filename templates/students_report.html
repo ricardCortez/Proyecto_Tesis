@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Informe de Actualización de Fotos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Reporte de Actualización de Fotos</h1>
+    <label for="yearSelect">Seleccione un año:</label>
+    <input type="number" id="yearSelect" min="2000" max="2099" step="1" value="2023" />
+    <button id="reportButton">Ver reporte</button>
+    <div id="report" style="display: {% if pdf_generation %}block{% else %}none{% endif %}">
+    <link rel="stylesheet" href="static/css/style_faces_report.css">
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Código de Alumno</th>
+                <th>Nombre</th>
+                <th>Última Actualización de Foto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.codigo_alumno }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td style="{{ usuario.update_style }}">{{ usuario.ultima_actualizacion_foto }} <span>{{ usuario.update_status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="/generate_pdf" target="_blank">Descargar Informe en PDF</a>
+    <br>
+    <a href="/generate_csv">Descargar Informe en CSV</a>
+    </div>
+    <script src="static/js/students_report.js"></script>
+</body>
+</html>
