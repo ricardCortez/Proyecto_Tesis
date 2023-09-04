@@ -30,18 +30,34 @@ $(document).ready(function() {
                 // Configuración del botón de cancelar
                 cancelButton.innerText = "Cancelar";
                 cancelButton.addEventListener('click', function() {
-                    $("#webcam-section").hide();
+                    webcam.style.display = "block";  // Muestra la webcam nuevamente
+                    canvas.style.display = "none";  // Oculta el canvas
+                    const context = canvas.getContext('2d');
+                    context.clearRect(0, 0, canvas.width, canvas.height);  // Limpia el canvas
+                    imageCaptured = null;  // Limpia la imagen capturada
+
+                    // Detiene la transmisión de la webcam
                     let stream = webcam.srcObject;
                     let tracks = stream.getTracks();
                     tracks.forEach(function(track) {
                         track.stop();
                     });
                     webcam.srcObject = null;
+
+                    // Vuelve a iniciar la webcam
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(stream => {
+                            webcam.srcObject = stream;
+                        })
+                        .catch(error => {
+                            console.error("Error accessing the webcam:", error);
+                        });
                 });
+
 
                 $("#update-photo-btn").click(function() {
                     $("#webcam-section").show();
-                    $("#webcam-section").append(cancelButton); // Agregar el botón de cancelar
+                    $("#webcam-section").append(cancelButton);
                     navigator.mediaDevices.getUserMedia({ video: true })
                         .then(stream => {
                             webcam.srcObject = stream;
@@ -52,12 +68,12 @@ $(document).ready(function() {
                 });
 
                 captureBtn.addEventListener('click', function() {
-    const context = canvas.getContext('2d');
-    context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-    imageCaptured = canvas.toDataURL('image/png');
-    canvas.style.display = 'block';
-    // No ocultar la cámara después de tomar la foto
-});
+                    const context = canvas.getContext('2d');
+                    context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+                    imageCaptured = canvas.toDataURL('image/png');
+                    canvas.style.display = 'block';
+                    webcam.style.display = "none";  // Oculta la webcam
+                });
 
 saveBtn.addEventListener('click', function() {
     if (imageCaptured) {
@@ -66,31 +82,45 @@ saveBtn.addEventListener('click', function() {
 
         $.post('/update_student_image', { image_data: imageCaptured, codigo_alumno: codigo_alumno })
             .done(function(response) {
-                // Oculta el spinner independientemente del resultado
-                document.getElementById("spinner").style.display = "none";
+                Swal.fire({
+                    title: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    onBeforeOpen: () => {
+                        Swal.showLoading();
+                    },
+                    preConfirm: () => {
+                        return new Promise((resolve) => {
+                            setTimeout(() => {
+                                // Oculta el spinner
+                                document.getElementById("spinner").style.display = "none";
 
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Imagen guardada',
-                        text: 'Foto actualizada'
-                    });
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Imagen guardada',
+                                        text: 'Foto actualizada'
+                                    });
 
-                    // Ocultar la cámara y el canvas después de guardar la foto
-                    $("#webcam-section").hide();
-                    let stream = webcam.srcObject;
-                    let tracks = stream.getTracks();
-                    tracks.forEach(function(track) {
-                        track.stop();
-                    });
-                    webcam.srcObject = null;
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message
-                    });
-                }
+                                    // Ocultar la cámara y el canvas después de guardar la foto
+                                    $("#webcam-section").hide();
+                                    let stream = webcam.srcObject;
+                                    let tracks = stream.getTracks();
+                                    tracks.forEach(function(track) {
+                                        track.stop();
+                                    });
+                                    webcam.srcObject = null;
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: response.message
+                                    });
+                                }
+                                resolve();
+                            }, 500);  // Tiempo de espera antes de ocultar el spinner y mostrar el mensaje emergente
+                        });
+                    }
+                });
             })
             .fail(function() {
                 // Oculta el spinner
@@ -110,6 +140,7 @@ saveBtn.addEventListener('click', function() {
         });
     }
 });
+
             })
             .fail(function() {
                 Swal.fire({

@@ -1,7 +1,6 @@
 
 #campo-dinamico body {
-    font-family: 'Roboto', sans-serif;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Roboto', sans-serif;=
     color: #333;
     background-color: #f4f4f4;
     margin: 0;
@@ -74,7 +73,7 @@ h3 {
 
 .field span, input[type="text"] {
     grid-column-start: 3;
-    justify-self: stretch;  /* Align to the right */
+    justify-self: left;  /* Align to the right */
     padding: 0 10px; /* Space before the border */
 }
 
@@ -163,7 +162,7 @@ button:hover {
 }
 
 /* Estilo para el título del modal */
-#campo-dinamico #passwordModal h2 {
+#passwordModal p {
     color: #1b1e21;
     text-align: center;
     margin-bottom: 20px;

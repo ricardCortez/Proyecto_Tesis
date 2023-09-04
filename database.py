@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from flask import render_template
 from flask_sqlalchemy import SQLAlchemy
@@ -119,9 +119,7 @@ class Secciones(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     nombre_seccion = db.Column(db.String(100))
-    #tipo_seccion = db.Column(db.String(100))  # Nueva columna para el tipo de sección
-    aula = db.Column(db.String(100)) #retirar
-    laboratorio = db.Column(db.String(100)) #retirar
+    tipo_seccion = db.Column(db.String(100))  # Nueva columna para el tipo de sección
     profesores = db.relationship('NuevoRegistro', secondary=profesor_seccion, backref=db.backref('secciones', lazy=True))
     estudiantes = db.relationship('Usuario', secondary=estudiante_seccion, backref=db.backref('secciones', lazy=True))
     asistencia_aula = db.relationship('AsistenciaAula', backref='asistencias_aula_seccion', lazy=True)
@@ -131,9 +129,10 @@ class Secciones(db.Model):
         return {
             'id': self.id,
             'nombre_seccion': self.nombre_seccion,
-            #'tipo_seccion': self.tipo_seccion,  # Incluir el tipo de sección en el diccionario
+            'tipo_seccion': self.tipo_seccion,  # Incluir el tipo de sección en el diccionario
             # Agrega aquí otras propiedades según sea necesario
         }
+
 
 class RegistroRostros(db.Model):
     __tablename__ = 'registro_rostros'
@@ -187,12 +186,17 @@ class NuevoRegistro(db.Model):
 
 class RostrosNoReconocidos(db.Model):
     __tablename__ = 'rostros_no_reconocidos'
+
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date, default=datetime.date.today())
-    hora = db.Column(db.Time, default=datetime.datetime.now().time())
+    fecha = db.Column(db.Date, default=datetime.today().date())
+    hora = db.Column(db.Time, default=datetime.now().time())
     tipo = db.Column(db.String(100))  # 'No Reconocido' o 'No Pertenece'
     datos = db.Column(db.String(500), nullable=True)  # "persona sin registro" para 'No Reconocido'
+    seccion = db.Column(db.String(100), nullable=True)  # Nueva columna 'seccion'
+    tipo_aula = db.Column(db.String(100), nullable=True)  # Nueva columna 'tipo_aula'
 
-    def __init__(self, tipo, datos=None):
+    def __init__(self, tipo, datos=None, seccion=None, tipo_aula=None):
         self.tipo = tipo
         self.datos = datos
+        self.seccion = seccion
+        self.tipo_aula = tipo_aula

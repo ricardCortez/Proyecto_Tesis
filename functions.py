@@ -99,6 +99,10 @@ def get_section_name(section_id):
 
     return None
 
+def get_section_details(section_id):
+    section = db.session.query(Secciones).get(section_id)
+    return section
+
 
 def student_belongs_to_section(student_code, section_id):
     # Obtén el estudiante usando el código del estudiante

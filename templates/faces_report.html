@@ -18,6 +18,8 @@
                 <th>Hora</th>
                 <th>Tipo</th>
                 <th>Datos</th>
+                <th>Seccion</th>
+                <th>Tipo de Aula</th>
             </tr>
         </thead>
         <tbody>
@@ -25,9 +27,11 @@
             <tr>
                 <!--<td>{{ rostro.id }}</td>-->
                 <td>{{ rostro.fecha }}</td>
-                <td>{{ rostro.hora }}</td>
+                <td>{{ rostro.hora.strftime('%H:%M') }}</td>
                 <td>{{ rostro.tipo }}</td>
                 <td>{{ rostro.datos }}</td>
+                <td>{{ rostro.seccion }}</td>
+                <td>{{ rostro.tipo_aula }}</td>
             </tr>
             {% endfor %}
         </tbody>

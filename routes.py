@@ -16,7 +16,7 @@ from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name, correo_existe, \
-    enviar_correo, belongs_to_section, verify_recaptcha
+    enviar_correo, belongs_to_section, verify_recaptcha, get_section_details
 from app import datetoday2
 from werkzeug.security import generate_password_hash
 
@@ -128,7 +128,14 @@ def start_aula():
     imagePaths = os.listdir(dataPath)
 
     section_id = request.form['section_name']
-    section_name = get_section_name(section_id)
+    section = get_section_details(section_id)
+    if section:
+        section_name = section.nombre_seccion
+        tipo_seccion = section.tipo_seccion
+    else:
+        flash('Error: no se pudo encontrar la sección.', 'error')
+        # Aquí puedes manejar el error como prefieras, por ejemplo, volviendo a renderizar la misma plantilla con un mensaje de error.
+        return render_template('attendance_aula.html', error="No se pudo encontrar la sección.")
 
     while ret:
         ret, frame = cap.read()
@@ -192,10 +199,13 @@ def start_aula():
                 # Para rostro no reconocido
                 if key == "Desconocido":
                     existing_entry = RostrosNoReconocidos.query.filter_by(tipo='No Reconocido',
-                                                                          datos='persona sin registro',
-                                                                          fecha=today).first()
+                                                                        datos='Persona sin registro',
+                                                                        fecha=today).first()
                     if not existing_entry:
-                        new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=datos)
+                        new_entry = RostrosNoReconocidos(tipo='No Reconocido',
+                                                        datos='Persona sin registro',
+                                                        seccion=section_name,
+                                                        tipo_aula=tipo_seccion)
 
                         db.session.add(new_entry)
 
@@ -206,10 +216,14 @@ def start_aula():
                     datos = f"{user.nombre}"
                     tipo_valor = f"No Pertecene ({section_name}"
 
-                    existing_entry = RostrosNoReconocidos.query.filter_by(tipo=tipo_valor, datos=datos,
-                                                                          fecha=today).first()
+                    existing_entry = RostrosNoReconocidos.query.filter_by(tipo=tipo_valor,
+                                                                        datos=datos,
+                                                                        fecha=today).first()
                     if not existing_entry:
-                        new_entry = RostrosNoReconocidos(tipo=tipo_valor, datos=datos)
+                        new_entry = RostrosNoReconocidos(tipo=tipo_valor,
+                                                        datos=datos,
+                                                        seccion=section_name,
+                                                        tipo_aula=tipo_seccion)
                         db.session.add(new_entry)
 
                 detection_counters[key] = 0

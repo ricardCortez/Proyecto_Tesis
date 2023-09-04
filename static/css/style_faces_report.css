@@ -1,7 +1,6 @@
 
-#campo dinamico
-body {
-    font-family: 'Poppins', sans-serif;
+#campo-dinamico body {
+    font-family: 'Roboto', sans-serif;
     margin: 40px;
     color: #333;
     background-color: #fff;
@@ -13,9 +12,13 @@ h1, h2, a {
 
 table {
     border-collapse: collapse;
-    width: 100%;
-    margin-top: 20px;
+    width: 80%;
+    margin: 20px auto;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+th:first-child, td:first-child {
+    width: 100px;  /* O cualquier otra dimensión fija que desees */
 }
 
 th, td {
