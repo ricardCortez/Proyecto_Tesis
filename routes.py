@@ -16,7 +16,7 @@ from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
     extract_attendance_from_db, get_code_from_db, hash_password, get_name_from_db, check_password, \
     admin_required, personal_required, docente_required, get_section_name, correo_existe, \
-    enviar_correo, belongs_to_section
+    enviar_correo, belongs_to_section, verify_recaptcha
 from app import datetoday2
 from werkzeug.security import generate_password_hash
 
@@ -510,6 +510,7 @@ def login():
     dni = request.form['usuario'].upper()
     clave_ingresada = request.form['contrasena']
     rol_seleccionado = request.form['rol']  # Obtiene el rol seleccionado de los datos del formulario.
+    recaptcha_response = request.form.get('g-recaptcha-response')  # Obtén la respuesta del reCAPTCHA
 
     # Obtener el usuario a partir del DNI ingresado
     usuario = db.session.query(NuevoRegistro).filter(NuevoRegistro.numero_documento == dni).first()
@@ -518,6 +519,11 @@ def login():
     if usuario and check_password(usuario.clave_asignada, clave_ingresada):
         # Aquí se agrega la verificación del rol
         if usuario.tipo_perfil == rol_seleccionado:
+            # Si el usuario es un administrador, verifica el reCAPTCHA
+            if rol_seleccionado == "Administrador" and not verify_recaptcha(recaptcha_response):
+                response = jsonify({'message': 'reCAPTCHA no verificado. Por favor, inténtelo de nuevo.'})
+                response.status_code = 400
+                return response
             # Iniciar la sesión del usuario
             session['logged_in'] = True
             session['usuario_id'] = usuario.id
@@ -1270,3 +1276,11 @@ def faces_report():
 
     return render_template('faces_report.html', rostros=rostros, no_reconocido_count=no_reconocido_count,
                            no_pertenece_count=no_pertenece_count, total_records=total_records)
+
+@routes_blueprint.route('/verify_recaptcha', methods=['POST'])
+def verify_recaptcha_route():
+    response = request.form.get('g-recaptcha-response')
+    if verify_recaptcha(response):
+        return jsonify({'success': True}), 200
+    else:
+        return jsonify({'success': False}), 400

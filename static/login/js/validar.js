@@ -7,6 +7,12 @@ $(document).ready(function() {
   if (rol) {
     // Actualizar el texto del span con el rol seleccionado
     $('#userRole').text(rol);
+    // Mostrar el div de reCAPTCHA solo si el rol es "Administrador"
+    if (rol === 'Administrador') {
+      $('#captcha-div').show();
+    } else {
+      $('#captcha-div').hide();
+    }
   } else {
     console.log('No se pudo recuperar el rol desde el almacenamiento local');
   }
@@ -17,6 +23,11 @@ $(document).ready(function() {
 
   username.addEventListener('keyup', function() {
     this.value = this.value.toUpperCase();
+  });
+
+    // Añadir un event listener para el botón "Validar Captcha"
+  $('#validar-captcha-btn').on('click', function() {
+    validarRecaptcha();
   });
 
   $('form[name="formularioInicioSesion"]').on('submit', function(e) {
@@ -44,7 +55,8 @@ $(document).ready(function() {
       data: {
         'usuario': usuario,
         'contrasena': contrasena,
-        'rol': rol
+        'rol': rol,
+        'g-recaptcha-response': grecaptcha.getResponse() // Incluir la respuesta del reCAPTCHA
       },
       success: function(data) {
         // Si el inicio de sesión es exitoso, mostrar un mensaje de éxito y redirigir a la página de inicio
@@ -98,3 +110,46 @@ $(document).ready(function() {
     });
   });
 });
+function validarRecaptcha() {
+    var recaptchaResponse = grecaptcha.getResponse();
+    if (recaptchaResponse) {
+      // Enviar la respuesta del reCAPTCHA al servidor para su verificación
+      $.ajax({
+        type: "POST",
+        url: "/verify_recaptcha",
+        data: {
+          'g-recaptcha-response': recaptchaResponse
+        },
+        success: function(data) {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Recaptcha validado con éxito',
+            });
+            isRecaptchaValidated = true; // Actualizar la variable a true una vez que el reCAPTCHA es validado con éxito
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Validación de Recaptcha fallida',
+              text: 'Por favor, inténtelo de nuevo.',
+            });
+            grecaptcha.reset();  // Resetear el reCAPTCHA para permitir un nuevo intento
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error en la validación de Recaptcha',
+            text: 'Por favor, inténtelo de nuevo.',
+          });
+          grecaptcha.reset();  // Resetear el reCAPTCHA para permitir un nuevo intento
+        }
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Recaptcha no completado',
+        text: 'Por favor, complete el Recaptcha.',
+      });
+    }
+  }
