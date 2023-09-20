@@ -2,5 +2,5 @@ Así es cómo se establecen las variables de entorno en PowerShell:
 $env:FLASK_APP = "app.py"
 Luego puedes continuar con los siguientes comandos:
 flask db init
-flask db migrate -m "mensaje de migración"
+flask db migrate -m "actualizacion de tablas"
 flask db upgrade

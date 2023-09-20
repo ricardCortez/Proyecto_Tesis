@@ -38,37 +38,39 @@
 
        // Update user details
         $('#updateButton').click(async function() {
-            const dni = $('#numero_documento_text').text();
-            const correo_electronico = $('#correo_electronico_input').val();
-            const celular = $('#celular_input').val();
+    const dni = $('#numero_documento_text').text();
+    const correo_electronico = $('#correo_electronico_input').val();
+    const celular = $('#celular_input').val();
 
-            // Validación del correo electrónico
-            if (!correo_electronico.includes('@')) {
-                Swal.fire('Error', 'Por favor, ingrese un correo electrónico válido.', 'error');
-                return;
-            }
+    // Validación del correo electrónico
+    if (!correo_electronico.includes('@')) {
+        Swal.fire('Error', 'Por favor, ingrese un correo electrónico válido.', 'error');
+        return;
+    }
 
-            // Validación del número de celular
-            if (!/^\d{9}$/.test(celular)) {
-                Swal.fire('Error', 'Por favor, ingrese un número de celular válido de 9 dígitos.', 'error');
-                return;
-            }
+    // Validación del número de celular
+    if (!/^\d{9}$/.test(celular)) {
+        Swal.fire('Error', 'Por favor, ingrese un número de celular válido de 9 dígitos.', 'error');
+        return;
+    }
 
-            try {
-                const response = await $.post('/update_usuario', {
-                    correo_electronico: correo_electronico,
-                    celular: celular
-                });
-
-                if (response.status === 'success') {
-                    Swal.fire('Éxito', 'Datos actualizados correctamente', 'success');
-                } else {
-                    Swal.fire('Error', 'Error al actualizar datos', 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', 'Error al enviar la solicitud: ' + error, 'error');
-            }
+    try {
+        const response = await $.post('/update_usuario', {
+            dni: dni,  // Incluye el dni en la solicitud
+            correo_electronico: correo_electronico,
+            celular: celular
         });
+
+        if (response.message === 'Datos actualizados correctamente') {
+            Swal.fire('Éxito', 'Datos actualizados correctamente', 'success');
+        } else {
+            Swal.fire('Error', 'Error al actualizar datos', 'error');
+        }
+    } catch (error) {
+        Swal.fire('Error', 'Error al enviar la solicitud: ' + error, 'error');
+    }
+});
+
     });
 
 // Función para mostrar u ocultar la sección de actualización de contraseña

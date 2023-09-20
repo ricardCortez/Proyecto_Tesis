@@ -35,7 +35,17 @@ $(window).on('load', function() {
           Swal.fire({
             icon: 'success',
             title: 'Éxito',
-            text: response.message
+            text: response.message,
+            preConfirm: () => {
+              if (response.omitted_records && response.omitted_records.length > 0) {
+                Swal.fire({
+                  icon: 'info',
+                  title: 'Registros Omitidos',
+                  html: response.omitted_records.join('<br>'),  // Mostrar los mensajes de registros omitidos como una lista
+                  footer: 'Los registros anteriores fueron omitidos durante la subida'
+                });
+              }
+            }
           });
         } else {
           Swal.fire({

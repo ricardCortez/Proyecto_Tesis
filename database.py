@@ -15,12 +15,14 @@ profesor_seccion = db.Table('profesor_seccion',
 # Asociación entre Usuarios (estudiantes) y Secciones
 estudiante_seccion = db.Table('estudiante_seccion',
     db.Column('estudiante_id', db.Integer, db.ForeignKey('usuarios.id')),
-    db.Column('seccion_id', db.Integer, db.ForeignKey('secciones.id'))
+    db.Column('seccion_id', db.Integer, db.ForeignKey('secciones.id')),
+    db.Column('inasistencias', db.Integer, default=0),
+    db.Column('estado', db.String(50), default='Activo')  # Estado puede ser 'Activo' o 'Jalado por Inasistencia'
 )
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     codigo_alumno = db.Column(db.String(100), unique=True)
     nombre = db.Column(db.String(100))
     fecha_ingreso = db.Column(db.Date)
@@ -46,6 +48,7 @@ class AsistenciaAula(db.Model):
     seccion_id = db.Column(db.Integer, db.ForeignKey('secciones.id'))  # Nueva columna
     fecha = db.Column(db.Date)
     hora = db.Column(db.Time)
+    asistencia_marcada = db.Column(db.Boolean)
 
     usuario_aula = db.relationship('Usuario', backref=db.backref('asistencias_aula_relacion', lazy=True))
     seccion = db.relationship('Secciones', backref=db.backref('asistencias_aula_seccion', lazy=True))  # Nueva relación
@@ -84,6 +87,7 @@ class AsistenciaLaboratorio(db.Model):
     seccion_id = db.Column(db.Integer, db.ForeignKey('secciones.id'))  # Nueva columna
     fecha = db.Column(db.Date)
     hora = db.Column(db.Time)
+    asistencia_marcada = db.Column(db.Boolean)
 
     usuario_lab = db.relationship('Usuario', backref=db.backref('asistencias_laboratorio_relacion', lazy=True),                              foreign_keys=[usuario_id])
     seccion = db.relationship('Secciones', backref=db.backref('asistencias_laboratorio_seccion', lazy=True))  # Nueva relación
@@ -120,6 +124,7 @@ class Secciones(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre_seccion = db.Column(db.String(100))
     tipo_seccion = db.Column(db.String(100))  # Nueva columna para el tipo de sección
+    limite_inasistencias = db.Column(db.Integer, default=3)
     profesores = db.relationship('NuevoRegistro', secondary=profesor_seccion, backref=db.backref('secciones', lazy=True))
     estudiantes = db.relationship('Usuario', secondary=estudiante_seccion, backref=db.backref('secciones', lazy=True))
     asistencia_aula = db.relationship('AsistenciaAula', backref='asistencias_aula_seccion', lazy=True)

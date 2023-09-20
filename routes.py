@@ -8,9 +8,11 @@ import cv2
 import csv
 import pandas as pd
 import pdfcrowd
+from pandas import isna
 from sqlalchemy import or_
 from flask import Blueprint, render_template, flash, request, jsonify, session, redirect, Response, \
 make_response
+from sqlalchemy.exc import IntegrityError
 from database import Usuario, RegistroRostros, db, NuevoRegistro, AsistenciaAula, AsistenciaLaboratorio, Secciones, \
     profesor_seccion, estudiante_seccion, RostrosNoReconocidos
 from functions import add_attendance_aula, add_attendance_laboratorio, train_model, \
@@ -446,6 +448,7 @@ def add():
 
 @routes_blueprint.route('/upload', methods=['POST'])
 def upload():
+    omitted_records = []  # Lista para recolectar los mensajes de registros omitidos
     try:
         if 'csvFile' not in request.files:
             return jsonify({'message': 'No se seleccionó ningún archivo', 'status': 'error'})
@@ -456,25 +459,34 @@ def upload():
 
         if file.filename.endswith('.csv'):
             # Leer el archivo CSV con Pandas
-            df = pd.read_csv(file)
+            df = pd.read_csv(file, usecols=lambda column : column not in ['id'])
 
             # Iterar sobre cada fila del DataFrame y crear instancias de Usuario
             for _, row in df.iterrows():
                 usuario = Usuario(
-                    codigo_alumno=row['Codigo'],
-                    nombre=row['Nombre de alumno'],
-                    fecha_ingreso=row['Fecha de ingreso'],
-                    ciclo_academico=row['Ciclo academico'],
-                    ultima_actualizacion_foto=row['Ultima fecha de actualizacion de foto']
+                    codigo_alumno=row['codigo_alumno'] if not isna(row['codigo_alumno']) else None,
+                    nombre=row['nombre'] if not isna(row['nombre']) else None,
+                    fecha_ingreso=pd.to_datetime(row['fecha_ingreso'], errors='coerce') if not isna(
+                        row['fecha_ingreso']) else None,
+                    ciclo_academico=row['ciclo_academico'] if not isna(row['ciclo_academico']) else None,
+                    ultima_actualizacion_foto=pd.to_datetime(row['ultima_actualizacion_foto'],
+                                                             errors='coerce') if not isna(
+                        row['ultima_actualizacion_foto']) else None
                 )
-                db.session.add(usuario)
+                try:
+                    db.session.add(usuario)
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    message = f"Error de integridad al insertar el registro: {row['codigo_alumno']} - Omitiendo este registro"
+                    print(message)
+                    omitted_records.append(message)
 
-            db.session.commit()
-            return jsonify({'message': 'Archivo CSV subido correctamente', 'status': 'success'})
-        else:
-            return jsonify({'message': 'Formato de archivo no válido. Se requiere un archivo CSV', 'status': 'error'})
+            return jsonify({'message': 'Archivo CSV subido correctamente', 'status': 'success', 'omitted_records': omitted_records})
     except Exception as e:
         print(str(e))
+        import traceback
+        traceback.print_exc()  # Esto imprimirá la traza del error en tu consola
         return jsonify({'message': f'Error al procesar el archivo CSV: {str(e)}', 'status': 'error'})
 
 @routes_blueprint.route('/registro', methods=['POST'])
@@ -524,7 +536,7 @@ def login():
     dni = request.form['usuario'].upper()
     clave_ingresada = request.form['contrasena']
     rol_seleccionado = request.form['rol']  # Obtiene el rol seleccionado de los datos del formulario.
-    recaptcha_response = request.form.get('g-recaptcha-response')  # Obtén la respuesta del reCAPTCHA
+    #recaptcha_response = request.form.get('g-recaptcha-response')  # Obtén la respuesta del reCAPTCHA
 
     # Obtener el usuario a partir del DNI ingresado
     usuario = db.session.query(NuevoRegistro).filter(NuevoRegistro.numero_documento == dni).first()
@@ -534,10 +546,10 @@ def login():
         # Aquí se agrega la verificación del rol
         if usuario.tipo_perfil == rol_seleccionado:
             # Si el usuario es un administrador, verifica el reCAPTCHA
-            if rol_seleccionado == "Administrador" and not verify_recaptcha(recaptcha_response):
-                response = jsonify({'message': 'reCAPTCHA no verificado. Por favor, inténtelo de nuevo.'})
-                response.status_code = 400
-                return response
+            #if rol_seleccionado == "Administrador" and not verify_recaptcha(recaptcha_response):
+            #    response = jsonify({'message': 'reCAPTCHA no verificado. Por favor, inténtelo de nuevo.'})
+            #    response.status_code = 400
+            #    return response
             # Iniciar la sesión del usuario
             session['logged_in'] = True
             session['usuario_id'] = usuario.id
@@ -802,11 +814,19 @@ def asignar_estudiante():
     estudiante_id = request.form.get('estudiante_id')
     seccion_id = request.form.get('seccion_id')
 
-    asignacion = estudiante_seccion.insert().values(estudiante_id=estudiante_id, seccion_id=seccion_id)
-    db.session.execute(asignacion)
-    db.session.commit()
+    # Verifica el número de estudiantes actualmente asignados a la sección
+    numero_de_estudiantes = db.session.query(estudiante_seccion).filter_by(seccion_id=seccion_id).count()
 
-    return jsonify({"message": "Estudiante asignado correctamente."})
+    if numero_de_estudiantes < 30:
+        # Si hay menos de 30 estudiantes en la sección, procede con la asignación
+        asignacion = estudiante_seccion.insert().values(estudiante_id=estudiante_id, seccion_id=seccion_id)
+        db.session.execute(asignacion)
+        db.session.commit()
+        return jsonify({"message": "Estudiante asignado correctamente."})
+    else:
+        # Si ya hay 30 o más estudiantes en la sección, rechaza la asignación
+        return jsonify({"message": "La sección ya tiene 30 estudiantes, no se puede asignar más estudiantes."}), 400
+
 
 @routes_blueprint.route('/obtener_usuarios', methods=['GET'])
 def obtener_usuarios():
@@ -1294,7 +1314,10 @@ def faces_report():
 @routes_blueprint.route('/verify_recaptcha', methods=['POST'])
 def verify_recaptcha_route():
     response = request.form.get('g-recaptcha-response')
-    if verify_recaptcha(response):
+    verification_result = verify_recaptcha(response)
+    print(f"Respuesta de reCAPTCHA: {response}")
+    print(f"Resultado de la verificación: {verification_result}")
+    if verification_result:
         return jsonify({'success': True}), 200
     else:
         return jsonify({'success': False}), 400
