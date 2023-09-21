@@ -1,33 +1,28 @@
+
 $(document).ready(function() {
-  // Obtener la lista de estudiantes y sus secciones mediante una petición AJAX
-  $.ajax({
-    url: '/get_students_sections',
-    type: 'GET',
-    dataType: 'json',
-    success: function(data) {
-      // Recorrer los datos obtenidos y construir la tabla
-      data.forEach(function(estudiante) {
-        var row = '<tr>' +
-          '<td>' + estudiante.codigo_alumno + '</td>' +
-          '<td>' + estudiante.nombre + '</td>';
+    // Inicializamos la tabla con DataTables
+    var tabla = $('#tabla-reporte').DataTable({
+        ajax: {
+            url: "/get_students_sections",
+            dataSrc: ""
+        },
+        columns: [
+            { data: "codigo_alumno"},
+            { data: "nombre" },
+            { data: "secciones" }
+        ]
+    });
 
-        if (estudiante.secciones.length > 0) {
-          var secciones = estudiante.secciones.map(function(seccion) {
-            return '<li>' + seccion + '</li>'; // Modificación aquí
-          }).join('');
+    // Cargar las secciones en el menú desplegable
+    $.get("/get_sections", function(secciones) {
+        secciones.forEach(function(seccion) {
+            $('#seccion-select').append(`<option value="${seccion.id}">${seccion.nombre_seccion}</option>`);
+        });
+    });
 
-          row += '<td><ul>' + secciones + '</ul></td>';
-        } else {
-          row += '<td>No secciones asignadas</td>';
-        }
-
-        row += '</tr>';
-
-        $('tbody').append(row);
-      });
-    },
-    error: function() {
-      console.log('Error al obtener la lista de estudiantes y secciones.');
-    }
-  });
+    // Evento para actualizar la tabla al cambiar la selección de sección
+    $('#seccion-select').on('change', function() {
+        var seccionId = $(this).val();
+        tabla.ajax.url(`/get_students_for_section/${seccionId}`).load();
+    });
 });

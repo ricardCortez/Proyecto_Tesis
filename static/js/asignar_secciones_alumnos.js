@@ -1,12 +1,12 @@
+
 $(document).ready(function() {
     cargarDatosEstudiantes();
 });
 
-    // Agregar evento de clic al botón de limpiar asignaciones
-    $("#limpiar-asignaciones").click(function() {
-        limpiarAsignacionesEstudiantes();
-    });
-
+// Agregar evento de clic al botón de limpiar asignaciones
+$("#limpiar-asignaciones").click(function() {
+    limpiarAsignacionesEstudiantes();
+});
 
 function limpiarAsignacionesEstudiantes() {
     console.log("Botón de limpiar asignaciones clickeado");
@@ -23,8 +23,10 @@ function limpiarAsignacionesEstudiantes() {
         }
     });
 }
+
 function cargarDatosEstudiantes() {
     $('#tabla-asignacion-estudiante tbody').empty();
+
     $.get("/obtener_usuarios", function(usuarios) {
         $.get("/obtener_secciones_alumnos", function(secciones) {
             $.get("/obtener_estudiantes_asignados", function(usuarios_asignados) {
@@ -38,34 +40,50 @@ function cargarDatosEstudiantes() {
                     fila += '</ul></td><td><button onclick="asignarUsuario(' + usuario.id + ')">Asignar</button></td></tr>';
                     $('#tabla-asignacion-estudiante tbody').append(fila);
                 });
+
+                // Destruye cualquier instancia anterior de DataTables antes de inicializar una nueva
+                if ($.fn.dataTable.isDataTable('#tabla-asignacion-estudiante')) {
+                    $('#tabla-asignacion-estudiante').DataTable().destroy();
+                }
+
+                // Inicializa DataTables una vez que los datos están cargados
+                $('#tabla-asignacion-estudiante').DataTable({
+                    pageLength: 10,
+                    lengthMenu: [10, 20, 30, 50, 100],
+                });
             });
         });
     });
 }
 
 function asignarUsuario(usuarioId) {
-    var seccionIds = []; // Array para almacenar los ID de las secciones seleccionadas
-    $("#seccion-usuario-" + usuarioId + " input:checked").each(function() {
-        seccionIds.push($(this).val()); // Agregar el ID de la sección seleccionada al array
-    });
+    let seccionesSeleccionadas = $(`input[name='seccion_${usuarioId}']:checked`).map(function() {
+        return this.value;
+    }).get();
 
-    seccionIds.forEach(function(seccionId) { // Recorrer el array y asignar cada sección individualmente
-        $.ajax({
-            url: '/asignar_estudiante',
-            type: 'POST',
-            data: {
-                'estudiante_id': usuarioId,
-                'seccion_id': seccionId
-            },
-            success: function(response) {
-                alert(response.message);
+    if (seccionesSeleccionadas.length === 0) {
+        alert('No se seleccionó ninguna sección.');
+        return;
+    }
+
+    $.ajax({
+        url: '/asignar_estudiante',
+        method: 'POST',
+        data: {
+            estudiante_id: usuarioId,
+            seccion_id: JSON.stringify(seccionesSeleccionadas)
+        },
+        success: function(response) {
+            if (response.status === 'success') {
                 cargarDatosEstudiantes();
-                ocultarSeccionAsignada(usuarioId, seccionId); // Ocultar la sección asignada
-            },
-            error: function(error) {
-                console.log(error);
+            } else {
+                // Mostrar un mensaje de error (podemos mejorar este mensaje basándonos en el error específico)
+                alert(response.message);
             }
-        });
+        },
+        error: function(error) {
+            console.error(error);
+        }
     });
 }
 

@@ -1,40 +1,37 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Lista de Estudiantes</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <!--<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+    <title>Reporte de Alumnos por Sección</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
+    <script charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&amp;display=swap" rel="stylesheet"/>
+
 </head>
 <body>
-  <h1>Lista de Estudiantes y Secciones</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Código de Alumno</th>
-        <th>Nombre</th>
-        <th>Secciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for estudiante in estudiantes %}
-        <tr>
-          <td>{{ estudiante.codigo_alumno }}</td>
-          <td>{{ estudiante.nombre }}</td>
-          <td>
-            {% if estudiante.secciones %}
-              <ul>
-                {% for seccion in estudiante.secciones %}
-                  <li>{{ seccion.nombre_seccion }}</li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p>No secciones asignadas</p>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="static/js/reporte.js"></script>
+    <!-- Menú desplegable para seleccionar sección -->
+    <label for="seccion-select">Seleccionar Sección:</label>
+    <select id="seccion-select">
+        <!-- Las opciones se llenarán dinámicamente desde el archivo JS -->
+    </select>
+
+    <!-- Tabla para mostrar los alumnos por sección -->
+    <table id="tabla-reporte" class="display">
+        <thead>
+            <tr>
+                <th>Codigo</th>
+                <th>Nombre</th>
+                <th>Sección</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Las filas se llenarán dinámicamente desde el archivo JS -->
+        </tbody>
+    </table>
+  <script src="static/js/reporte.js"></script>
+    <link rel="stylesheet" href="static/css/style_asignar_secciones.css">
 </body>
 </html>

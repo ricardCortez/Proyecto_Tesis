@@ -6,6 +6,7 @@ import os
 import imutils
 import cv2
 import csv
+import json
 import pandas as pd
 import pdfcrowd
 from pandas import isna
@@ -812,20 +813,20 @@ def obtener_secciones_noasignadas():
 @routes_blueprint.route('/asignar_estudiante', methods=['POST'])
 def asignar_estudiante():
     estudiante_id = request.form.get('estudiante_id')
-    seccion_id = request.form.get('seccion_id')
+    seccion_id_list = json.loads(request.form.get('seccion_id'))
 
-    # Verifica el número de estudiantes actualmente asignados a la sección
-    numero_de_estudiantes = db.session.query(estudiante_seccion).filter_by(seccion_id=seccion_id).count()
+    for seccion_id in seccion_id_list:
+        # Verificación de la cantidad máxima de estudiantes en una sección
+        asignaciones_existentes = db.session.query(estudiante_seccion).filter_by(seccion_id=seccion_id).count()
+        if asignaciones_existentes >= 30:
+            return jsonify({"message": f"La sección {seccion_id} ya tiene el máximo de estudiantes permitidos (30).", "status": "error"})
 
-    if numero_de_estudiantes < 30:
-        # Si hay menos de 30 estudiantes en la sección, procede con la asignación
         asignacion = estudiante_seccion.insert().values(estudiante_id=estudiante_id, seccion_id=seccion_id)
         db.session.execute(asignacion)
-        db.session.commit()
-        return jsonify({"message": "Estudiante asignado correctamente."})
-    else:
-        # Si ya hay 30 o más estudiantes en la sección, rechaza la asignación
-        return jsonify({"message": "La sección ya tiene 30 estudiantes, no se puede asignar más estudiantes."}), 400
+
+    db.session.commit()
+
+    return jsonify({"message": "Estudiante asignado correctamente.", "status": "success"})
 
 
 @routes_blueprint.route('/obtener_usuarios', methods=['GET'])
@@ -1023,6 +1024,21 @@ def get_students_sections():
             'secciones': secciones
         }
         estudiantes_data.append(estudiante_data)
+
+    return jsonify(estudiantes_data)
+@routes_blueprint.route('/get_sections', methods=['GET'])
+def get_sections():
+    secciones = Secciones.query.all()
+    secciones_data = [{'id': seccion.id, 'nombre_seccion': seccion.nombre_seccion} for seccion in secciones]
+    return jsonify(secciones_data)
+@routes_blueprint.route('/get_students_for_section/<int:seccionId>', methods=['GET'])
+def get_students_for_section(seccionId):
+    seccion = Secciones.query.get(seccionId)
+    if not seccion:
+        return jsonify({'message': 'Sección no encontrada'}), 404
+
+    estudiantes = seccion.estudiantes
+    estudiantes_data = [{'codigo_alumno': estudiante.codigo_alumno, 'nombre': estudiante.nombre} for estudiante in estudiantes]
 
     return jsonify(estudiantes_data)
 
