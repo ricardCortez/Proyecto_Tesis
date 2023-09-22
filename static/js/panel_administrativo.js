@@ -146,3 +146,19 @@ $("#enlace-link_1").click(function(e) {
         }
       });
   });
+  // Escucha el evento de clic del enlace "9"
+  $("#enlace-link_9").click(function(e) {
+    e.preventDefault();
+  $("#campo-dinamico").empty();
+      $.ajax({
+        url: '/reporte_inasistencia',
+        type: 'GET',
+        success: function(data) {
+          $("#campo-dinamico").html(data);
+          attachReportButtonHandler();
+        },
+        error: function(error) {
+          console.log('Ha ocurrido un error al cargar el template', error);
+        }
+      });
+  });

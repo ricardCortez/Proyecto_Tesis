@@ -93,6 +93,10 @@ def reporte():
 @routes_blueprint.route('/reporte docente')
 def reporte_docente():
     return render_template('reporte_docente.html')
+@routes_blueprint.route('/reporte_inasistencia')
+def reporte_inasistencia():
+    return render_template('reporte_inasistencia.html')
+
 # ------------------------- fin de las rutas del personal administrativo --------------------
 # ------------------------- rutas del docente --------------------
 @routes_blueprint.route('/docente')
@@ -1026,11 +1030,13 @@ def get_students_sections():
         estudiantes_data.append(estudiante_data)
 
     return jsonify(estudiantes_data)
+
 @routes_blueprint.route('/get_sections', methods=['GET'])
 def get_sections():
     secciones = Secciones.query.all()
     secciones_data = [{'id': seccion.id, 'nombre_seccion': seccion.nombre_seccion} for seccion in secciones]
     return jsonify(secciones_data)
+
 @routes_blueprint.route('/get_students_for_section/<int:seccionId>', methods=['GET'])
 def get_students_for_section(seccionId):
     seccion = Secciones.query.get(seccionId)
@@ -1041,6 +1047,38 @@ def get_students_for_section(seccionId):
     estudiantes_data = [{'codigo_alumno': estudiante.codigo_alumno, 'nombre': estudiante.nombre} for estudiante in estudiantes]
 
     return jsonify(estudiantes_data)
+
+@routes_blueprint.route('/get_students_failed_by_section/<int:section_id>', methods=['GET'])
+def get_students_failed_by_section(section_id):
+    try:
+        # Consulta para obtener estudiantes jalados por inasistencia para la sección específica
+        students_failed = db.session.query(
+            Usuario.codigo_alumno,
+            Usuario.nombre,
+            estudiante_seccion.c.estado
+        ).join(
+            estudiante_seccion, estudiante_seccion.c.estudiante_id == Usuario.id
+        ).filter(
+            estudiante_seccion.c.estado == 'Jalado por Inasistencia',
+            estudiante_seccion.c.seccion_id == section_id
+        ).all()
+
+        # Construir la lista de estudiantes en formato JSON
+        data = []
+        for index, student in enumerate(students_failed, start=1):
+            data.append({
+                "indice": index,
+                "codigo_alumno": student.codigo_alumno,
+                "nombre": student.nombre,
+                "estado": student.estado
+            })
+
+        return jsonify(data)
+    except Exception as e:
+        # Capturar cualquier excepción y devolver un mensaje de error
+        logging.exception("Ocurrió un error al obtener los estudiantes jalados por inasistencia para la sección")
+        return jsonify({"error": str(e)}), 500
+
 
 @routes_blueprint.route('/get_teachers_sections', methods=['GET'])
 def get_teachers_sections():
@@ -1337,3 +1375,40 @@ def verify_recaptcha_route():
         return jsonify({'success': True}), 200
     else:
         return jsonify({'success': False}), 400
+
+@routes_blueprint.route('/get_students_failed_by_absence')
+def get_students_failed_by_absence():
+    try:
+        # Construir la consulta para obtener estudiantes jalados por inasistencia
+        students_failed = db.session.query(
+            Usuario.codigo_alumno,
+            Usuario.nombre,
+            estudiante_seccion.c.estado  # Seleccionar la columna de estado en lugar de nombre_seccion
+        ).join(
+            estudiante_seccion, estudiante_seccion.c.estudiante_id == Usuario.id
+        ).join(
+            Secciones, Secciones.id == estudiante_seccion.c.seccion_id
+        ).filter(
+            estudiante_seccion.c.estado == 'Jalado por Inasistencia'
+        ).all()
+
+        # Verificar si la consulta devuelve resultados
+        if not students_failed:
+            return jsonify({"error": "No students found"}), 404
+
+        # Construir la lista de datos en formato JSON con un índice numérico
+        data = []
+        for index, student in enumerate(students_failed, start=1):
+            data.append({
+                "indice": index,  # Agregar el índice numérico
+                "codigo_alumno": student.codigo_alumno,
+                "nombre": student.nombre,
+                "estado": student.estado  # Cambiar a 'estado' en lugar de 'nombre_seccion'
+            })
+
+        return jsonify(data)
+    except Exception as e:
+        # Capturar cualquier excepción y devolver un mensaje de error
+        logging.exception("Ocurrió un error al obtener los estudiantes jalados por inasistencia")
+        return jsonify({"error": str(e)}), 500
+

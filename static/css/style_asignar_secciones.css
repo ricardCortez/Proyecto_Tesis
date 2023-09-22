@@ -48,6 +48,10 @@ tr:hover {
     background-color: #e0f7fa;
 }
 
+.red-text {
+    color: red;
+}
+
 button {
     padding: 10px 20px;
     border: none;
