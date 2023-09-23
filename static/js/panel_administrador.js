@@ -67,7 +67,6 @@ $("#enlace-link_2").click(function(e) {
   });
 });
 
-
  // Escucha el evento de clic del enlace "3"
 $("#enlace-link_3").click(function(e) {
   e.preventDefault();
@@ -87,19 +86,62 @@ $("#enlace-link_3").click(function(e) {
 $("#enlace-link_4").click(function(e) {
   e.preventDefault();
   $("#campo-dinamico").empty();
+
+  // Realizar una solicitud GET a "/cargar_registro_usuario"
   $.ajax({
-    url: '/ver_reporte',
-    type: 'GET',
-    success: function(data) {
-      $("#campo-dinamico").html(data);
-    },
-    error: function(error) {
-      console.log('Ha ocurrido un error al cargar el template', error);
+    url: "/cargar_registro_usuario",
+    type: "GET",
+    success: function(response) {
+      $("#campo-dinamico").html(response);
+
+      // Después de agregar el nuevo HTML al DOM, configura el evento de clic.
+      $(document).on('click', '#registrar-usuario-btn', function(event) {
+        event.preventDefault();
+
+        // Aquí va el código de registro.
+        var codigoAlumno = document.getElementById('codigo_alumno').value;
+        var nombre = document.getElementById('nombre').value;
+        var fechaIngreso = document.getElementById('fecha_ingreso').value;
+        var cicloAcademico = document.getElementById('ciclo_academico').value;
+        var ultimaActualizacionFoto = document.getElementById('ultima_actualizacion_foto').value;
+
+        // Validación de los campos del formulario
+        if (codigoAlumno === '' || nombre === '' || fechaIngreso === '' || cicloAcademico === '' || ultimaActualizacionFoto === '') {
+          Swal.fire('Error', 'Todos los campos son obligatorios.', 'error');
+          return;
+        }
+
+        // Realizar una solicitud POST a "/registro_usuario"
+        fetch('/registro_usuario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            'codigo_alumno': codigoAlumno,
+            'nombre': nombre,
+            'fecha_ingreso': fechaIngreso,
+            'ciclo_academico': cicloAcademico,
+            'ultima_actualizacion_foto': ultimaActualizacionFoto
+          })
+        })
+        .then(function(response) {
+            return response.text(); // Convert the response to text
+        })
+        .then(function(mensaje) {
+            if (mensaje === "Usuario registrado.") {
+                Swal.fire('Éxito', mensaje, 'success');
+            } else {
+                Swal.fire('Error', mensaje, 'error');
+            }
+        });
+      });
     }
   });
 });
 
-// Escucha el evento de clic del enlace "3"
+
+// Escucha el evento de clic del enlace "5"
 $("#enlace-link_5").click(function(e) {
   e.preventDefault();
   $("#campo-dinamico").empty();

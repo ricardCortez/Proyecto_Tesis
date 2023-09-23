@@ -72,4 +72,50 @@ $(document).ready(function() {
 
     // Llamar a la función para cargar las secciones al inicio
     get_sections();
+
 });
+
+function getTableData() {
+    var tableData = [];
+    $('#tabla-jalados').DataTable().rows().every(function(index, element) {
+        var row = this.data();
+        tableData.push(row);
+    });
+    return tableData;
+}
+
+function downloadCSV() {
+        var selectedSectionId = $('#seccion-select').val();
+        if(selectedSectionId) {
+            window.location.href = '/generate_inasistencia_csv/' + selectedSectionId;
+        } else {
+            alert('Por favor, selecciona una sección primero.');
+        }
+    }
+function downloadPDF() {
+    var tableData = getTableData(); // Obtén los datos de la tabla
+    $.ajax({
+        url: '/generate_inasistencia_pdf',
+        type: 'POST',
+        contentType: 'application/json;charset=UTF-8',
+        data: JSON.stringify({ 'tableData': tableData }),
+        xhrFields: {
+            responseType: 'blob' // Esto es necesario para recibir correctamente un PDF
+        },
+        success: function(response, status, xhr) {
+            // Verifica si hay datos en la consola del navegador
+            console.log(response);
+
+            // Abre el PDF en una nueva ventana del navegador
+            var blob = new Blob([response], { type: 'application/pdf' });
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.target = '_blank';
+            link.click();
+        },
+        error: function(error) {
+            // Maneja los errores que puedan ocurrir al generar el PDF
+            alert('Error al generar el PDF: ' + error.responseText);
+        }
+    });
+}

@@ -59,6 +59,10 @@ def upload_form():
 @routes_blueprint.route('/reg')
 def home():
     return render_template('registro-alumno.html')
+
+@routes_blueprint.route('/reg_alumno')
+def reg_alumno():
+    return render_template('nuevo_alumno.html')
 @routes_blueprint.route('/ver_reporte')
 def ver_reporte():
     return render_template('ver_asistencia_general.html')
@@ -535,6 +539,36 @@ def registro():
         mensaje = "Error al registrar."
 
     return mensaje
+
+@routes_blueprint.route('/cargar_registro_usuario', methods=['GET'])
+def cargar_registro_usuario():
+    return render_template('nuevo_alumno.html')
+
+@routes_blueprint.route('/registro_usuario', methods=['POST'])
+def registro_usuario():
+    codigo_alumno = request.form['codigo_alumno']
+    nombre = request.form['nombre']
+    fecha_ingreso = datetime.strptime(request.form['fecha_ingreso'], '%Y-%m-%d').date()
+    ciclo_academico = request.form['ciclo_academico']
+    ultima_actualizacion_foto = datetime.strptime(request.form['ultima_actualizacion_foto'], '%Y-%m-%d').date()
+
+    nuevo_usuario = Usuario(
+        codigo_alumno=codigo_alumno,
+        nombre=nombre,
+        fecha_ingreso=fecha_ingreso,
+        ciclo_academico=ciclo_academico,
+        ultima_actualizacion_foto=ultima_actualizacion_foto
+    )
+
+    try:
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        mensaje = "Usuario registrado."
+    except Exception as e:
+        mensaje = "Error al registrar."
+
+    return mensaje
+
 
 @routes_blueprint.route('/login', methods=['POST'])
 def login():
@@ -1351,6 +1385,67 @@ def generate_csv_faces():
     response = Response(generate(), mimetype='text/csv')
     response.headers.set("Content-Disposition", "attachment", filename="faces_report.csv")
     return response
+
+@routes_blueprint.route('/generate_inasistencia_pdf', methods=['POST'])
+def generate_inasistencia_pdf():
+    try:
+        # Obtén los datos de la tabla del cuerpo de la petición
+        table_data = request.json.get('tableData', [])
+
+        # Renderiza la plantilla HTML con los datos de la tabla
+        html = render_template('reporte_inasistencia.html', table_data=table_data)
+
+        # Convierte el HTML a PDF
+        client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
+        pdf_data = client.convertString(html)
+
+        if not pdf_data:
+            return jsonify({"error": "El PDF está vacío"}), 500
+
+        # Construye una respuesta con el contenido del PDF
+        response = Response(pdf_data, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = 'inline; filename=reporte_inasistencia.pdf'
+
+        return response
+    except Exception as e:
+        logging.exception("Error al generar el PDF")
+        return jsonify({"error": str(e)}), 500
+
+@routes_blueprint.route('/generate_inasistencia_csv/<int:section_id>', methods=['GET'])
+def generate_inasistencia_csv(section_id):
+    try:
+        # Realiza la misma consulta que en tu ruta existente para obtener los datos correctos.
+        students_failed = db.session.query(
+            Usuario.codigo_alumno,
+            Usuario.nombre,
+            estudiante_seccion.c.estado
+        ).join(
+            estudiante_seccion, estudiante_seccion.c.estudiante_id == Usuario.id
+        ).filter(
+            estudiante_seccion.c.estado == 'Jalado por Inasistencia',
+            estudiante_seccion.c.seccion_id == section_id
+        ).all()
+
+        def generate():
+            data = csv.StringIO()
+            csv_writer = csv.writer(data)
+
+            # Escribe los encabezados del CSV
+            csv_writer.writerow(['Código Alumno', 'Nombre', 'Estado'])
+
+            # Escribe cada fila de datos en el CSV
+            for student in students_failed:
+                csv_writer.writerow([student.codigo_alumno, student.nombre, student.estado])
+
+            yield data.getvalue()
+
+        response = Response(generate(), mimetype='text/csv')
+        response.headers.set("Content-Disposition", "attachment", filename="reporte_inasistencia.csv")
+
+        return response
+    except Exception as e:
+        logging.exception("Ocurrió un error al generar el CSV de estudiantes jalados por inasistencia")
+        return jsonify({"error": str(e)}), 500
 
 @routes_blueprint.route('/faces_report')
 def faces_report():

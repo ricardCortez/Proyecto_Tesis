@@ -1,0 +1,48 @@
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <title>Registro de Usuario</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/nuevo_registro/css/style.css">
+  </head>
+  <body>
+    <section id="campo-dinamico">
+      <h2 class="titulo">Registro de Usuario</h2>
+        <form id="usuarioForm" method="post" action="/registro_usuario">
+            <div class="container">
+                <div class="column">
+                    <div class="campo_input">
+                        <label for="codigo_alumno" class="input-label">Código de Alumno</label>
+                        <input type="text" id="codigo_alumno" name="codigo_alumno" class="input-field" required>
+                    </div>
+                    <div class="campo_input">
+                        <label for="nombre" class="input-label">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="input-field" required>
+                    </div>
+                    <div class="campo_input">
+                        <label for="fecha_ingreso" class="input-label">Fecha de Ingreso</label>
+                        <input type="date" id="fecha_ingreso" name="fecha_ingreso" class="input-field" required>
+                    </div>
+                    <div class="campo_input">
+                        <label for="ciclo_academico" class="input-label">Ciclo Académico</label>
+                        <input type="text" id="ciclo_academico" name="ciclo_academico" class="input-field" required>
+                    </div>
+                    <div class="campo_input">
+                        <label for="ultima_actualizacion_foto" class="input-label">Última Actualización de Foto</label>
+                        <input type="date" id="ultima_actualizacion_foto" name="ultima_actualizacion_foto" class="input-field" required>
+                    </div>
+                    <div class="campo_input">
+                        <input type="submit" value="Registrar" class="submit-button">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="static/nuevo_registro/js/alumno.js"></script>
+  </body>
+</html>

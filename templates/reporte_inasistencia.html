@@ -24,8 +24,18 @@
     </thead>
     <tbody>
     <!-- Los datos se insertarán aquí desde JavaScript -->
+        {% for row in table_data %}
+            <tr>
+                <td>{{ row.codigo_alumno }}</td>
+                <td>{{ row.nombre }}</td>
+                <td>{{ row.estado }}</td>
+            </tr>
+        {% endfor %}
     </tbody>
     </table>
+    <button id="download-pdf" onclick="downloadPDF();">Descargar PDF</button>
+    <button id="download-csv" onclick="downloadCSV();">Descargar CSV</button>
+
     <script src="static/js/reporte_inasistencia.js"></script>
     <link rel="stylesheet" href="static/css/style_asignar_secciones.css">
 
