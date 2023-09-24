@@ -4,7 +4,7 @@ $(document).ready(function() {
         var codigo_alumno = $("#codigo_alumno").val();
 
         // Validación del formato de código de alumno
-        var regex = /^u\d{8,9}$/;
+        var regex = /^[uU]\d{8,9}$/;
         if (!regex.test(codigo_alumno)) {
             Swal.fire({
                 icon: 'warning',

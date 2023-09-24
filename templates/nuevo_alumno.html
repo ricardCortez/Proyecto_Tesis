@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <title>Registro de Usuario</title>
+    <title>Registro de Alumno</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
@@ -10,7 +10,7 @@
   </head>
   <body>
     <section id="campo-dinamico">
-      <h2 class="titulo">Registro de Usuario</h2>
+      <h2 class="titulo">Registro de Alumno</h2>
         <form id="usuarioForm" method="post" action="/registro_usuario">
             <div class="container">
                 <div class="column">
@@ -28,12 +28,19 @@
                     </div>
                     <div class="campo_input">
                         <label for="ciclo_academico" class="input-label">Ciclo Académico</label>
-                        <input type="text" id="ciclo_academico" name="ciclo_academico" class="input-field" required>
+                        <select id="ciclo_academico" name="ciclo_academico" class="input-field" required>
+                            <option value="2023-I">2023-1</option>
+                            <option value="2023-II">2023-2</option>
+                            <option value="2024-I">2024-1</option>
+                            <!-- Añade más opciones según sea necesario -->
+                        </select>
                     </div>
+                    <!--
                     <div class="campo_input">
                         <label for="ultima_actualizacion_foto" class="input-label">Última Actualización de Foto</label>
                         <input type="date" id="ultima_actualizacion_foto" name="ultima_actualizacion_foto" class="input-field" required>
                     </div>
+                    -->
                     <div class="campo_input">
                         <input type="submit" value="Registrar" class="submit-button">
                     </div>
