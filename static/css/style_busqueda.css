@@ -137,3 +137,22 @@ h1, h2 {
 #capture-btn:hover, #save-btn:hover, #update-photo-btn:hover, #webcam-section button:hover {
     background-color: #0056b3; /* Cambia el color de fondo cuando se pasa el ratón */
 }
+
+.asistencias-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.asistencias-table th, .asistencias-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    color: black
+}
+
+.asistencias-table th {
+    background-color: #4CAF50;
+    color: white;
+}
+

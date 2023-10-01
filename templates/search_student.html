@@ -46,7 +46,7 @@
     <p>Fecha de ingreso: {{ usuario.fecha_ingreso }}</p>
     <p>Fecha de foto: {{ usuario.ultima_actualizacion_foto }}</p>
 
-    {% if ultima_asistencia_aula %}
+    <!--{% if ultima_asistencia_aula %}
     <h2>Última asistencia a la aula:</h2>
     <p>Fecha de registro: {{ ultima_asistencia_aula.fecha }}</p>
     <p>Hora de registro: {{ ultima_asistencia_aula.hora.strftime('%H:%M:%S') }}</p>
@@ -58,7 +58,7 @@
     <p>Hora de registro: {{ ultima_asistencia_laboratorio.hora.strftime('%H:%M:%S') }}</p>
     {% else %}
     <p>Este alumno no tiene registros de asistencia al laboratorio.</p>
-    {% endif %}
+    {% endif %}-->
 
     {% else %}
     <p>No se encontró ningún usuario con el código de alumno proporcionado.</p>

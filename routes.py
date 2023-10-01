@@ -973,21 +973,121 @@ def search_student_aula():
 @routes_blueprint.route('/search_student_laboratorio', methods=['POST'])
 def search_student_laboratorio():
     codigo_alumno = request.form['codigo_alumno']
-    print(f"Codigo de alumno recibido: {codigo_alumno}")  # Imprime el código de alumno recibido
+    seccion_id = request.form['seccion']
 
-    # Realizar la búsqueda del usuario en la base de datos
     usuario = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
-    asistencia = AsistenciaLaboratorio.query.filter_by(usuario_id=usuario.id).all()
-    registro_rostro = RegistroRostros.query.filter_by(codigo_alumno=codigo_alumno)
+    seccion_obj = Secciones.query.filter_by(id=seccion_id).first()
 
-    if usuario is not None:
-        print(usuario.__dict__)  # Imprime los detalles del usuario encontrado
-        print(asistencia)  # Imprime los registros de asistencia del laboratorio del usuario
-        # Renderizar los resultados de búsqueda en un template HTML
-        return render_template('resultados_busqueda.html', usuario=usuario,
-                               asistencia=asistencia, registro_rostro=registro_rostro, ubicacion="laboratorio")
+    pertenece_laboratorio = False
+    pertenece_seccion = False
+    ultima_asistencia = None
+    ruta_imagen = ""
+    primer_archivo = None
 
-    return render_template('resultados_busqueda.html', no_results=True)
+    if usuario and seccion_obj:
+        pertenece_laboratorio = True
+        print(f"Código de Alumno: {codigo_alumno}")
+
+        if seccion_obj in usuario.secciones:
+            pertenece_seccion = True
+            print(f"Código de Alumno: {codigo_alumno}")
+            print(f"Sección: {seccion_obj.nombre_seccion}")
+
+            ultima_asistencia = AsistenciaLaboratorio.query.filter_by(usuario_id=usuario.id).order_by(
+                AsistenciaLaboratorio.fecha.desc(), AsistenciaLaboratorio.hora.desc()).first()
+
+            try:
+                ruta_directorio = os.path.join('static', 'faces', codigo_alumno)
+                primer_archivo = next(os.scandir(ruta_directorio), None)
+                if primer_archivo is not None:
+                    ruta_imagen = os.path.join(ruta_directorio, primer_archivo.name)
+            except FileNotFoundError:
+                print("No se encontró el directorio del rostro para el alumno.")
+
+    return render_template('resultados_busqueda.html', usuario=usuario, pertenece_laboratorio=pertenece_laboratorio,
+                           pertenece_seccion=pertenece_seccion, ruta_imagen=ruta_imagen, primer_archivo=primer_archivo.name if primer_archivo else None,
+                           ultima_asistencia=ultima_asistencia)
+
+@routes_blueprint.route('/search_student_unificado', methods=['POST'])
+def search_student_unificado():
+    codigo_alumno = request.form['codigo_alumno']
+    seccion_id = request.form['seccion']
+
+    # Busca el usuario y la sección
+    usuario = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
+    seccion_obj = Secciones.query.filter_by(id=seccion_id).first()
+
+    # Información de Aula
+    pertenece_aula = False
+    pertenece_seccion_aula = False
+    ultima_asistencia_aula = None
+    ruta_imagen = ""
+    primer_archivo = None
+
+    # Información de Laboratorio
+    pertenece_laboratorio = False
+    pertenece_seccion_laboratorio = False
+    ultima_asistencia_laboratorio = None
+
+    if usuario and seccion_obj:
+        pertenece_aula = True
+        pertenece_laboratorio = True
+        tipo_seccion = seccion_obj.tipo_seccion  # Obteniendo el tipo de sección desde la base de datos
+        print("Tipo de seccion: ", tipo_seccion)
+        if seccion_obj in usuario.secciones:
+            pertenece_seccion_aula = True
+            pertenece_seccion_laboratorio = True
+            # Buscar la última asistencia en aula y laboratorio
+            ultima_asistencia_aula = AsistenciaAula.query.filter_by(usuario_id=usuario.id).order_by(
+                AsistenciaAula.fecha.desc(), AsistenciaAula.hora.desc()).first()
+            ultima_asistencia_laboratorio = AsistenciaLaboratorio.query.filter_by(usuario_id=usuario.id).order_by(
+                AsistenciaLaboratorio.fecha.desc(), AsistenciaLaboratorio.hora.desc()).first()
+            # Agregar logs para verificar los resultados de las consultas
+            print("Última asistencia aula:", ultima_asistencia_aula)
+            print("Última asistencia laboratorio:", ultima_asistencia_laboratorio)
+
+            try:
+                ruta_directorio = os.path.join('static', 'faces', codigo_alumno)
+                primer_archivo = next(os.scandir(ruta_directorio), None)
+                if primer_archivo is not None:
+                    ruta_imagen = os.path.join(ruta_directorio, primer_archivo.name)
+            except FileNotFoundError:
+                print("No se encontro el directorio del rostro para el alumno.")
+
+    return render_template('resultados_busqueda.html',
+                           usuario=usuario,
+                           pertenece_aula=pertenece_aula,
+                           seccion=seccion_obj.nombre_seccion if seccion_obj else None,
+                           tipo_seccion=tipo_seccion,
+                           pertenece_seccion_aula=pertenece_seccion_aula,
+                           ultima_asistencia_aula=ultima_asistencia_aula,
+                           pertenece_laboratorio=pertenece_laboratorio,
+                           pertenece_seccion_laboratorio=pertenece_seccion_laboratorio,
+                           ultima_asistencia_laboratorio=ultima_asistencia_laboratorio,
+                           # ... y cualquier otra variable que necesites enviar
+                           )
+
+
+@routes_blueprint.route('/resa')
+def resa():
+    return render_template('resultado_asistencias.html')
+
+@routes_blueprint.route('/resultado_asistencias', methods=['POST'])
+def resultado_asistencias():
+    codigo_alumno = request.form['codigo_alumno']
+
+    usuario = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
+    if not usuario:
+        return render_template('error.html', mensaje='No se encontró el estudiante con código: ' + codigo_alumno)
+
+    asistencias_aula = AsistenciaAula.query.filter_by(usuario_id=usuario.id).all()
+    asistencias_laboratorio = AsistenciaLaboratorio.query.filter_by(usuario_id=usuario.id).all()
+
+    return render_template('resultado_asistencias.html',
+                           usuario=usuario,
+                           asistencias_aula=asistencias_aula,
+                           asistencias_laboratorio=asistencias_laboratorio)
+
 
 @routes_blueprint.route('/search_student_combined', methods=['POST'])
 def search_student_combined():
