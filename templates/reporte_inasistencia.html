@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     <title>Reporte de Alumnos jalados</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
-    <script charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js" type="text/javascript"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&amp;display=swap" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style_asignar_secciones.css">
+
 </head>
 <body>
     <select id="seccion-select">
@@ -36,8 +38,13 @@
     <button id="download-pdf" onclick="downloadPDF();">Descargar PDF</button>
     <button id="download-csv" onclick="downloadCSV();">Descargar CSV</button>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+    <!-- Your Script -->
     <script src="static/js/reporte_inasistencia.js"></script>
-    <link rel="stylesheet" href="static/css/style_asignar_secciones.css">
-
 </body>
 </html>

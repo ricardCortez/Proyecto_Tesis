@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from flask import render_template
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -58,7 +57,7 @@ class AsistenciaAula(db.Model):
         for c in self.__table__.columns:
             value = getattr(self, c.name)
             # Si el valor es un objeto de tiempo, convertirlo a una cadena
-            if isinstance(value, datetime.time):
+            if type(value).__name__ == 'time':
                 value = value.strftime('%H:%M:%S')
             data[c.name] = value
 
@@ -78,7 +77,6 @@ class AsistenciaAula(db.Model):
         self.hora = hora
         self.seccion_id = seccion_id  # Nueva asignación
 
-
 class AsistenciaLaboratorio(db.Model):
     __tablename__ = 'asistencia_laboratorio'
     id = db.Column(db.Integer, primary_key=True)
@@ -97,7 +95,7 @@ class AsistenciaLaboratorio(db.Model):
         for c in self.__table__.columns:
             value = getattr(self, c.name)
             # Si el valor es un objeto de tiempo, convertirlo a una cadena
-            if isinstance(value, datetime.time):
+            if type(value).__name__ == 'time':
                 value = value.strftime('%H:%M:%S')
             data[c.name] = value
 

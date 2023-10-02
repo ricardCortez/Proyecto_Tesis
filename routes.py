@@ -270,7 +270,6 @@ def asignar_cubiculo():
     results = {'numero_cubiculo': numero_cubiculo}
     return jsonify(results)
 
-
 @routes_blueprint.route('/start/laboratorio', methods=['GET', 'POST'])
 def start_laboratorio():
     cap = cv2.VideoCapture(0)
@@ -1158,12 +1157,12 @@ def get_students_sections():
         secciones = [seccion.nombre_seccion for seccion in estudiante.secciones]
         estudiante_data = {
             'codigo_alumno': estudiante.codigo_alumno,
-            'nombre': estudiante.nombre,
-            'secciones': secciones
+            'nombre': estudiante.nombre
         }
         estudiantes_data.append(estudiante_data)
 
     return jsonify(estudiantes_data)
+
 
 @routes_blueprint.route('/get_sections', methods=['GET'])
 def get_sections():
@@ -1171,16 +1170,19 @@ def get_sections():
     secciones_data = [{'id': seccion.id, 'nombre_seccion': seccion.nombre_seccion} for seccion in secciones]
     return jsonify(secciones_data)
 
+
 @routes_blueprint.route('/get_students_for_section/<int:seccionId>', methods=['GET'])
 def get_students_for_section(seccionId):
     seccion = Secciones.query.get(seccionId)
     if not seccion:
-        return jsonify({'message': 'Sección no encontrada'}), 404
+        return jsonify([]), 200  # Retorna una lista vacía si la sección no existe
 
     estudiantes = seccion.estudiantes
-    estudiantes_data = [{'codigo_alumno': estudiante.codigo_alumno, 'nombre': estudiante.nombre} for estudiante in estudiantes]
+    estudiantes_data = [{'codigo_alumno': estudiante.codigo_alumno, 'nombre': estudiante.nombre} for estudiante in
+                        estudiantes]
 
     return jsonify(estudiantes_data)
+
 
 @routes_blueprint.route('/get_students_failed_by_section/<int:section_id>', methods=['GET'])
 def get_students_failed_by_section(section_id):

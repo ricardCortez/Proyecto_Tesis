@@ -2,7 +2,11 @@
 <html>
 <head>
     <title>Informe de Actualización de Fotos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -13,7 +17,7 @@
     <div id="report" style="display: {% if pdf_generation %}block{% else %}none{% endif %}">
     <link rel="stylesheet" href="static/css/style_faces_report.css">
 
-    <table border="1">
+    <table id="students-table" border="1">
         <thead>
             <tr>
                 <th>Código de Alumno</th>
@@ -37,6 +41,8 @@
     <a href="/generate_csv">Descargar Informe en CSV</a>
     </div>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
     <script src="static/js/students_report.js"></script>
 </body>
 </html>

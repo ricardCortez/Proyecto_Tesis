@@ -1,30 +1,30 @@
-function attachReportButtonHandler() {
-    const tableRows = document.querySelectorAll("#report tbody tr");
-
-    // Almacena el contenido original de las celdas de fecha
-    tableRows.forEach(row => {
-        const dateCell = row.querySelector("td:last-child");
-        dateCell.setAttribute("data-original-content", dateCell.textContent.trim());
+$(document).ready(function() {
+    const table = $('#students-table').DataTable({
+        "paging": true,
+        "searching": true,
+        "info": true,
+        "order": [[0, "asc"]]
     });
 
-    document.getElementById("reportButton").addEventListener("click", showReport);
-
     function showReport() {
-        const yearSelected = document.getElementById("yearSelect").value;
-        tableRows.forEach(row => {
-            const dateCell = row.querySelector("td:last-child");
-            // Restablece el contenido de la celda usando el contenido original almacenado
-            dateCell.innerHTML = dateCell.getAttribute("data-original-content");
-            const date = new Date(dateCell.textContent.trim());
+        const yearSelected = $('#yearSelect').val();
+
+        table.rows().every(function() {
+            const row = $(this.node());
+            const dateCell = row.find('td:last-child');
+            const originalContent = dateCell.data('original-content') || dateCell.text().trim();
+            dateCell.data('original-content', originalContent);
+
+            const date = new Date(originalContent);
             if (date.getFullYear() == yearSelected) {
-                dateCell.innerHTML += ' <span style="color:green">Actualizado</span>';
+                dateCell.html(`${originalContent} <span style="color:green">Actualizado</span>`);
             } else {
-                dateCell.innerHTML = '<span style="color:red">' + dateCell.textContent + '</span> <span>Necesita actualizar</span>';
+                dateCell.html(`<span style="color:red">${originalContent}</span> <span>Necesita actualizar</span>`);
             }
         });
-        document.getElementById("report").style.display = "block";
-    }
-}
 
-// Llama a la función inmediatamente para adjuntar el manejador de eventos
-attachReportButtonHandler();
+        $('#report').show();
+    }
+
+    $('#reportButton').on('click', showReport);
+});

@@ -1,9 +1,8 @@
 
 #campo-dinamico body {
     font-family: 'Roboto', sans-serif;
-    margin: 40px;
+    background-color: #f0f2f5;
     color: #333;
-    background-color: #fff;
 }
 
 h1, h2, a {
@@ -11,10 +10,9 @@ h1, h2, a {
 }
 
 table {
+    width: 100%;
     border-collapse: collapse;
-    width: 80%;
-    margin: 20px auto;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
 
 th:first-child, td:first-child {
@@ -24,6 +22,7 @@ th:first-child, td:first-child {
 th, td {
     padding: 10px 15px;
     border-bottom: 1px solid #ddd;
+    color: black;
 }
 
 th {
