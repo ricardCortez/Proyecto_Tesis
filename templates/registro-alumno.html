@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="static/css/style_registro_alumno.css">
 </head>
 <body>
@@ -17,7 +17,7 @@
     <div class="row text-center">
         <div class="col">
             <h2>Agregar alumnos</h2>
-            <form action='/add' method="POST" enctype="multipart/form-data">
+            <form action='/add' method="POST" enctype="multipart/form-data" novalidate>
                 <label><b>Ingrese alumno</b></label>
                 <br>
                 <input type="alphanumeric" id="nombre" name='nombre' required >

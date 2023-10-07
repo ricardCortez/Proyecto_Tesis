@@ -18,7 +18,11 @@ $("#student-search-form").submit(function(e) {
             $("#campo-dinamico").html(data);
         })
         .fail(function() {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Error en la búsqueda', });
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al buscar alumno',
+                text: 'El alumno no existe en el sistema.',
+            });
         });
 });
 

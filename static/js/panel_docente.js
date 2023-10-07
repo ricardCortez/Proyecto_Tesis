@@ -136,9 +136,19 @@ $(document).ready(function() {
 
     // Escucha el evento de clic del enlace "7"
   $("#enlace-link_7").click(function(e) {
-    e.preventDefault();  // Previene el comportamiento por defecto del enlace
-    $("#campo-dinamico").empty();  // Vacía el contenido de "campo-dinamico"
-    // Agrega aquí el código para cargar el contenido de "link 6"
+    e.preventDefault();
+  $("#campo-dinamico").empty();
+      $.ajax({
+        url: '/reporte_inasistencia',
+        type: 'GET',
+        success: function(data) {
+          $("#campo-dinamico").html(data);
+          attachReportButtonHandler();
+        },
+        error: function(error) {
+          console.log('Ha ocurrido un error al cargar el template', error);
+        }
+      });
   });
 
 });

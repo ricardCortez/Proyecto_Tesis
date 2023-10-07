@@ -1417,7 +1417,7 @@ def generate_pdf():
     html = render_template('students_report.html', usuarios=usuarios, pdf_generation=True)
 
     # Crear una instancia de pdfcrowd con tu clave de API
-    client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
+    client = pdfcrowd.HtmlToPdfClient('4mars', 'e14704eaa51312816572034cb8de24ff')
 
     # Convertir HTML a PDF y obtener el PDF como bytes
     pdf_data = client.convertString(html)
@@ -1435,7 +1435,7 @@ def generate_pdf_faces():
     html = render_template('faces_report.html', rostros=rostros)
 
     # Crear una instancia de pdfcrowd con tu clave de API
-    client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
+    client = pdfcrowd.HtmlToPdfClient('4mars', 'e14704eaa51312816572034cb8de24ff')
 
     # Convertir HTML a PDF y obtener el PDF como bytes
     pdf_data = client.convertString(html)
@@ -1498,7 +1498,7 @@ def generate_inasistencia_pdf():
         html = render_template('reporte_inasistencia.html', table_data=table_data)
 
         # Convierte el HTML a PDF
-        client = pdfcrowd.HtmlToPdfClient('4mars', 'e3490f933b05056044eb60304de9c9af')
+        client = pdfcrowd.HtmlToPdfClient('4mars', 'e14704eaa51312816572034cb8de24ff')
         pdf_data = client.convertString(html)
 
         if not pdf_data:

@@ -23,7 +23,7 @@ $(document).ready(function() {
     // Función para cargar las secciones
     function get_sections() {
         $.ajax({
-            url: '/get_sections',
+            url: '/obtener_secciones',
             type: 'GET',
             dataType: 'json',
             success: function(data) {
@@ -84,38 +84,54 @@ function getTableData() {
     return tableData;
 }
 
-function downloadCSV() {
+    function downloadCSV() {
         var selectedSectionId = $('#seccion-select').val();
         if(selectedSectionId) {
             window.location.href = '/generate_inasistencia_csv/' + selectedSectionId;
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'El CSV se ha descargado correctamente.'
+            });
         } else {
-            alert('Por favor, selecciona una sección primero.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Por favor, selecciona una sección primero.'
+            });
         }
     }
-function downloadPDF() {
-    var tableData = getTableData(); // Obtén los datos de la tabla
-    $.ajax({
-        url: '/generate_inasistencia_pdf',
-        type: 'POST',
-        contentType: 'application/json;charset=UTF-8',
-        data: JSON.stringify({ 'tableData': tableData }),
-        xhrFields: {
-            responseType: 'blob' // Esto es necesario para recibir correctamente un PDF
-        },
-        success: function(response, status, xhr) {
-            // Verifica si hay datos en la consola del navegador
-            console.log(response);
 
-            // Abre el PDF en una nueva ventana del navegador
-            var blob = new Blob([response], { type: 'application/pdf' });
-            var link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.target = '_blank';
-            link.click();
-        },
-        error: function(error) {
-            // Maneja los errores que puedan ocurrir al generar el PDF
-            alert('Error al generar el PDF: ' + error.responseText);
-        }
-    });
-}
+    function downloadPDF() {
+        var tableData = getTableData(); // Obtén los datos de la tabla
+        $.ajax({
+            url: '/generate_inasistencia_pdf',
+            type: 'POST',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ 'tableData': tableData }),
+            xhrFields: {
+                responseType: 'blob' // Esto es necesario para recibir correctamente un PDF
+            },
+            success: function(response, status, xhr) {
+                var blob = new Blob([response], { type: 'application/pdf' });
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.target = '_blank';
+                link.click();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: 'El PDF se ha generado y abierto correctamente.'
+                });
+            },
+            error: function(error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al generar el PDF: ' + error.responseText
+                });
+            }
+        });
+    }
+
