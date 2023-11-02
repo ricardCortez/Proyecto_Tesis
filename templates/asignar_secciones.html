@@ -2,21 +2,33 @@
 <html>
 <head>
     <title>Asignar Docente a Sección</title>
-    <!-- Asegúrate de incluir jQuery antes de tu script -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="static/js/asignar_secciones.js"></script>
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="static/css/style_faces_report.css">
 </head>
 <body>
     <button id="limpiar-asignaciones-btn" onclick="limpiarAsignaciones()">Limpiar Asignaciones</button>
-    <table id="tabla-asignacion">
-        <tr>
-            <th>Docente</th>
-            <th>Sección</th>
-            <th>Acción</th>
-        </tr>
-        <!-- Los datos se cargarán dinámicamente aquí -->
+    <table id="tabla-asignacion" class="display">
+        <thead>
+            <tr>
+                <th>Docente</th>
+                <th>Sección</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los datos se cargarán dinámicamente aquí -->
+        </tbody>
     </table>
 
+    <!-- Load jQuery only once -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript">
+        var jQ = jQuery.noConflict();
+    </script>
+    <!-- Load DataTables only once -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+
+    <script src="static/js/asignar_secciones.js"></script>
 </body>
 </html>

@@ -6,12 +6,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="static/nuevo_registro/css/style.css">
   </head>
   <body>
     <section id="campo-dinamico">
       <h2 class="titulo">Registro de Alumno</h2>
-        <form id="usuarioForm" method="post" action="/registro_usuario">
+        <form id="usuarioForm" method="post" novalidate>
             <div class="container">
                 <div class="column">
                     <div class="campo_input">
@@ -36,21 +37,21 @@
                             <!-- Añade más opciones según sea necesario -->
                         </select>
                     </div>
-                    <!--
+
                     <div class="campo_input">
-                        <label for="ultima_actualizacion_foto" class="input-label">Última Actualización de Foto</label>
-                        <input type="date" id="ultima_actualizacion_foto" name="ultima_actualizacion_foto" class="input-field" required>
+                        <input type="hidden" id="ultima_actualizacion_foto" name="ultima_actualizacion_foto">
                     </div>
-                    -->
+
                     <div class="campo_input">
-                        <input type="submit" value="Registrar" class="submit-button">
+                        <!--<input type="submit" value="Registrar" class="submit-button">-->
+                        <button id="btn-registrar" class="submit-button">Registrar</button>
                     </div>
                 </div>
             </div>
         </form>
     </section>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="static/nuevo_registro/js/alumno.js"></script>
+    <!--<script src="static/nuevo_registro/js/alumno.js"></script>-->
   </body>
 </html>

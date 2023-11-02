@@ -25,6 +25,7 @@ $(document).ready(function() {
 
         $('tbody').append(row);
       });
+      $('table').DataTable();  // Inicializar DataTables
     },
     error: function() {
       console.log('Error al obtener la lista de docentes y secciones.');

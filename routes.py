@@ -42,7 +42,7 @@ def login_1():
     return render_template('login.html')
 # ------------------------- rutas del administrador --------------------
 @routes_blueprint.route('/administrador')
-@admin_required
+#@admin_required
 def panel_admin():
     return render_template('panel_administrador.html')
 
@@ -539,7 +539,7 @@ def registro():
 
     return mensaje
 
-@routes_blueprint.route('/cargar_registro_usuario', methods=['GET'])
+@routes_blueprint.route('/cargar_registro_usuario')
 def cargar_registro_usuario():
     return render_template('nuevo_alumno.html')
 
@@ -562,11 +562,11 @@ def registro_usuario():
     try:
         db.session.add(nuevo_usuario)
         db.session.commit()
-        mensaje = "Usuario registrado."
+        print("Registro exitoso")
+        return jsonify(status='success', message='Usuario registrado.')
     except Exception as e:
-        mensaje = "Error al registrar."
-
-    return mensaje
+        print(f"Error al registrar: {str(e)}")
+        return jsonify(status='error', message='Error al registrar.')
 
 
 @routes_blueprint.route('/login', methods=['POST'])
@@ -1547,6 +1547,31 @@ def generate_inasistencia_csv(section_id):
         return response
     except Exception as e:
         logging.exception("Ocurrió un error al generar el CSV de estudiantes jalados por inasistencia")
+        return jsonify({"error": str(e)}), 500
+from io import StringIO
+@routes_blueprint.route('/generate_reporte_csv', methods=['POST'])
+def generate_reporte_csv():
+    try:
+        # Recuperar los datos enviados desde el lado del cliente
+        data = request.json.get("tableData", [])
+
+        # Iniciar la creación del CSV
+        output = StringIO()
+        csv_writer = csv.writer(output)
+
+        # Escribir encabezado
+        csv_writer.writerow(['Codigo', 'Nombre'])
+
+        # Escribir cada fila de datos en el CSV
+        for row in data:
+            csv_writer.writerow([row['codigo_alumno'], row['nombre']])
+
+        # Configurar y devolver la respuesta
+        response = Response(output.getvalue(), mimetype='text/csv')
+        response.headers.set("Content-Disposition", "attachment", filename="reporte.csv")
+
+        return response
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @routes_blueprint.route('/faces_report')

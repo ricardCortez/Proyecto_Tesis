@@ -2,11 +2,10 @@ $(document).ready(function() {
     cargarDatos();
 });
 
-    // Agregar evento de clic al botón de limpiar asignaciones
-    $("#limpiar-asignaciones-btn").click(function() {
-        limpiarAsignaciones();
-    });
-
+// Agregar evento de clic al botón de limpiar asignaciones
+$("#limpiar-asignaciones-btn").click(function() {
+    limpiarAsignaciones();
+});
 
 function limpiarAsignaciones() {
     console.log("Botón de limpiar asignaciones clickeado");
@@ -25,37 +24,37 @@ function limpiarAsignaciones() {
 }
 
 function cargarDatos() {
-  $('#tabla-asignacion').empty();  // Limpiar la tabla antes de recargar los datos
-  $.get("/obtener_docentes", function(docentes) {
-    $.get("/obtener_secciones_no_asignadas", function(secciones) {
-      $.get("/obtener_docentes_asignados", function(docentes_asignados) {
-        docentes.forEach(function(docente) {
-          var fila = '<tr><td>' + docente.nombre + '</td><td><select id="seccion-' + docente.id + '"';
-          fila += '>';
+    $('#tabla-asignacion').DataTable().destroy();  // Destroy any existing DataTable instance
+    $('#tabla-asignacion tbody').empty();  // Limpiar el tbody de la tabla antes de recargar los datos
+    $.get("/obtener_docentes", function(docentes) {
+        $.get("/obtener_secciones_no_asignadas", function(secciones) {
+            $.get("/obtener_docentes_asignados", function(docentes_asignados) {
+                docentes.forEach(function(docente) {
+                    var fila = '<tr><td>' + docente.nombre + '</td><td><select id="seccion-' + docente.id + '"';
+                    fila += '>';
 
-          if (secciones.length === 0) {
-            fila += '<option value="">Vacío</option>';
-          } else {
-            secciones.forEach(function(seccion) {
-              fila += '<option value="' + seccion.id + '">' + seccion.nombre_seccion + '</option>';
+                    if (secciones.length === 0) {
+                        fila += '<option value="">Vacío</option>';
+                    } else {
+                        secciones.forEach(function(seccion) {
+                            fila += '<option value="' + seccion.id + '">' + seccion.nombre_seccion + '</option>';
+                        });
+                    }
+
+                    fila += '</select></td><td>';
+                    if (secciones.length === 0) {
+                        fila += '<button disabled>Asignar</button>';
+                    } else {
+                        fila += '<button onclick="asignarDocente(' + docente.id + ')">Asignar</button>';
+                    }
+                    fila += '</td></tr>';
+                    $('#tabla-asignacion tbody').append(fila);
+                });
+                $('#tabla-asignacion').DataTable();
             });
-          }
-
-          fila += '</select></td><td>';
-          if (secciones.length === 0) {
-            fila += '<button disabled>Asignar</button>';
-          } else {
-            fila += '<button onclick="asignarDocente(' + docente.id + ')">Asignar</button>';
-          }
-          fila += '</td></tr>';
-          $('#tabla-asignacion').append(fila);
         });
-      });
     });
-  });
 }
-
-
 
 function asignarDocente(profesorId) {
     var seccionId = $("#seccion-" + profesorId).val();
