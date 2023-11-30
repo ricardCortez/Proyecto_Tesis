@@ -5,6 +5,7 @@ $(document).ready(function() {
             { data: null }, // Deja esta columna en blanco para el índice numérico
             { data: 'codigo_alumno' },
             { data: 'nombre' },
+            { data: 'fecha'},
             { data: 'estado' ,
                 createdRow: function(row, data, dataIndex) {
                     // Agregar la clase 'red-text' al estado si cumple con cierta condición

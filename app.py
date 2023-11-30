@@ -1,13 +1,15 @@
 from flask import Flask
-from datetime import date
+from datetime import date, datetime
 from flask_migrate import Migrate
 from config import Config
 from database import db
+from jinja2 import Environment
 
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # Asegúrate de que esta sea una cadena larga y aleatoria para seguridad.
 app.config.from_object(Config)
 app.config.from_pyfile('config.cfg')
+app.jinja_env.filters['date'] = datetime.strftime
 
 db.init_app(app)
 migrate = Migrate(app, db)

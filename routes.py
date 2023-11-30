@@ -10,7 +10,7 @@ import json
 import pandas as pd
 import pdfcrowd
 from pandas import isna
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from flask import Blueprint, render_template, flash, request, jsonify, session, redirect, Response, \
 make_response
 from sqlalchemy.exc import IntegrityError
@@ -1191,9 +1191,17 @@ def get_students_failed_by_section(section_id):
         students_failed = db.session.query(
             Usuario.codigo_alumno,
             Usuario.nombre,
-            estudiante_seccion.c.estado
+            estudiante_seccion.c.estado,
+            AsistenciaLaboratorio.fecha  # Reemplaza con la columna de fecha de asistencia_laboratorio
         ).join(
             estudiante_seccion, estudiante_seccion.c.estudiante_id == Usuario.id
+        ).join(
+            AsistenciaLaboratorio,
+            and_(
+                AsistenciaLaboratorio.usuario_id == Usuario.id,
+                AsistenciaLaboratorio.seccion_id == estudiante_seccion.c.seccion_id,
+                AsistenciaLaboratorio.asistencia_marcada == False  # Ajusta según tu lógica
+            )
         ).filter(
             estudiante_seccion.c.estado == 'Jalado por Inasistencia',
             estudiante_seccion.c.seccion_id == section_id
@@ -1206,6 +1214,7 @@ def get_students_failed_by_section(section_id):
                 "indice": index,
                 "codigo_alumno": student.codigo_alumno,
                 "nombre": student.nombre,
+                "fecha": student.fecha,
                 "estado": student.estado
             })
 
@@ -1265,16 +1274,28 @@ def actualizar_cubiculo():
     codigo_alumno = request.form['codigo_alumno']
     nuevo_numero_cubiculo = request.form['nuevo_numero_cubiculo']
 
-    # Verificar si el nuevo número de cubículo ya está en uso
-    cubiculo_en_uso = AsistenciaLaboratorio.query.filter_by(numero_cubiculo=nuevo_numero_cubiculo).first()
+    # Obtener la fecha actual
+    fecha_actual = datetime.now().date()
+
+    # Verificar si el nuevo número de cubículo ya está en uso para el día actual
+    cubiculo_en_uso = AsistenciaLaboratorio.query.filter_by(
+        numero_cubiculo=nuevo_numero_cubiculo,
+        fecha=fecha_actual
+    ).first()
+
     if cubiculo_en_uso is not None:
         response = {'success': False, 'message': 'El número de cubículo ya está en uso.'}
         return jsonify(response)
 
-    # Realizar la actualización en la base de datos
+    # Realizar la actualización en la base de datos para la fecha actual
     usuario = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
+
     if usuario is not None:
-        asistencia_laboratorio = AsistenciaLaboratorio.query.filter_by(usuario_id=usuario.id).first()
+        asistencia_laboratorio = AsistenciaLaboratorio.query.filter_by(
+            usuario_id=usuario.id,
+            fecha=fecha_actual
+        ).first()
+
         if asistencia_laboratorio is not None:
             asistencia_laboratorio.numero_cubiculo = nuevo_numero_cubiculo
             db.session.commit()

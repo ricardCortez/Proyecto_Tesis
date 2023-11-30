@@ -21,6 +21,7 @@
             <th>N°</th>
             <th>Código Alumno</th>
             <th>Nombre</th>
+            <th>Fecha</th>
             <th>Estado</th>
         </tr>
     </thead>
@@ -30,6 +31,7 @@
             <tr>
                 <td>{{ row.codigo_alumno }}</td>
                 <td>{{ row.nombre }}</td>
+                <td>{{ row.formatted_date | date("Y-m-d") }}</td>
                 <td>{{ row.estado }}</td>
             </tr>
         {% endfor %}
