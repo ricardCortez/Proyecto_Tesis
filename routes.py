@@ -374,6 +374,7 @@ def start_laboratorio():
 
 @routes_blueprint.route('/add', methods=['GET', 'POST'])
 def add():
+
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         codigo_alumno = request.form.get('codigo_alumno')
@@ -395,6 +396,7 @@ def add():
             ret, frame = cap.read()
             if ret == False:
                 break
+            #print("Dentro del bucle")
 
             frame = imutils.resize(frame, width=640)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -414,8 +416,9 @@ def add():
             cv2.imshow('Capturando Rostros', frame)
 
             k = cv2.waitKey(1)
+            #print(f"Valor de la tecla: {k}")
             if k == ord('q') or count >= 300:
-                cancelled = True  # Usuario presionó 'q' para cancelar el proceso
+                cancelled = False  # Usuario presionó 'q' para cancelar el proceso
                 break
 
         cap.release()
@@ -423,7 +426,7 @@ def add():
 
         # Si el usuario canceló el proceso, se retorna al inicio
         if cancelled:
-            return render_template('add.html')
+            return render_template('panel_administrador.html')
 
         # Busca el usuario en la base de datos utilizando el código de alumno
         print(f"Código de alumno: {codigo_alumno}")
@@ -443,16 +446,16 @@ def add():
         nombre, codigo_alumno, hora, *_ = extract_attendance_from_db()
 
         # Guarda la ubicación de la carpeta creada en la base de datos
-        user = Usuario.query.filter_by(nombre=nombre).first()
-        if user is None:
-            #return jsonify(error=f"No se encontró el usuario con nombre {nombre}"), 404
-            pass
-        user.ubicacion_carpeta = ruta_rostro
-        db.session.commit()
+        #user = Usuario.query.filter_by(codigo_alumno=codigo_alumno).first()
+        #if user is None:
+        #    #return jsonify(error=f"No se encontró el usuario con nombre {nombre}"), 404
+        #    pass
+        #user.ubicacion_carpeta = ruta_rostro
+        #db.session.commit()
 
         return render_template('registro-alumno.html', images_captured=count, total_images=300, nombre=nombre, codigo_alumno=codigo_alumno, hora=hora)
     else:
-        return render_template('add.html')
+        return render_template('panel_administrador.html')
 
 @routes_blueprint.route('/upload', methods=['POST'])
 def upload():
