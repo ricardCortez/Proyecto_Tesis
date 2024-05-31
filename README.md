@@ -72,6 +72,6 @@ Este proyecto está bajo la licencia MIT - mira el archivo [LICENSE](LICENSE) pa
 
 ## Contacto
 
-Tu Nombre - [@4mars](https://x.com/_4mars)
+4mars - [@4mars](https://x.com/_4mars)
 
 Enlace al Proyecto: [https://github.com/ricardCortez/Proyecto_Tesis](https://github.com/ricardCortez/Proyecto_Tesis)
